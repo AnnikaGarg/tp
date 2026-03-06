@@ -5,4 +5,5 @@ Display |      Name       |               Github Profile               | Portfol
 ![](https://via.placeholder.com/100.png?text=Photo) |  Annika   | [Github](https://github.com/) | [Portfolio](docs/team/johndoe.md)
 ![](https://via.placeholder.com/100.png?text=Photo) | Trijal Srimal | [Github](https://github.com/TrijalSrimal) | [Portfolio](docs/team/trijal.md)
 ![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0-bbeRlPdkz7vhvACzWQ4BJ1CXlxTzf14Q4QwncVZK4vIRwtJF_0YtmklNSwP99g9fBMd78NhQiZqZWDM_YbAHoOHIZuNvSrCeUxAXE0EvA&s=10) | Aryan | [Github](https://github.com/https://github.com/aruyadav13) | [aruyadav13](docs/team/johndoe.md)
+![](https://img.freepik.com/premium-vector/cute-cool-boy-dabbing-pose-vector-icon_1022901-101047.jpg?semt=ais_hybrid&w=740&q=80) | Krishna Bajaj | [Github](https://github.com/KrishnaBajaj1506) | [Portfolio]()
 
