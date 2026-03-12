@@ -79,7 +79,7 @@ public class Storage {
      * @return The parsed Expense, or null if the line is malformed.
      */
     private Expense parseLine(String line) {
-        String[] parts = line.split("\\|");
+        String[] parts = line.split("\\|", 2);
         if (parts.length < 2) {
             System.out.println("Warning: Skipping malformed line: " + line);
             return null;
