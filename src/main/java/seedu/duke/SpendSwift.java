@@ -41,6 +41,9 @@ public class SpendSwift {
             String commandWord = fullCommand.split(" ")[0].toLowerCase();
 
             switch (commandWord) {
+            case "list":
+                printAllExpenses();
+                break;
             case "help":
                 printHelp();
                 break;
@@ -71,6 +74,21 @@ public class SpendSwift {
         System.out.println("  help                    - Show this help menu");
         System.out.println("  exit                    - Exit the application");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Prints all current expenses to the user
+     */
+    private void printAllExpenses() {
+        if (expenseList.getSize() == 0) {
+            System.out.println("Your expense list is currently empty.");
+            return;
+        }
+
+        System.out.println("Here are your tracked expenses:");
+        for (int i = 0; i < expenseList.getSize(); i++) {
+            System.out.println((i + 1) + ". " + expenseList.getExpense(i).toString());
+        }
     }
 
     /**
