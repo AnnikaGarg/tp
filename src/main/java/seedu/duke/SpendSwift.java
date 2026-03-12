@@ -7,13 +7,18 @@ import java.util.Scanner;
  * Initializes the application and starts the interaction loop with the user.
  */
 public class SpendSwift {
+    private static final String DATA_FILE_PATH = "data/expenses.txt";
     private ExpenseList expenseList;
+    private Storage storage;
 
     /**
      * Constructs a SpendSwift instance and initializes the core components.
+     * Loads any previously saved expenses from disk.
      */
     public SpendSwift() {
         expenseList = new ExpenseList();
+        storage = new Storage(DATA_FILE_PATH);
+        storage.load(expenseList);
     }
 
     /**
@@ -35,18 +40,20 @@ public class SpendSwift {
 
             String commandWord = fullCommand.split(" ")[0].toLowerCase();
 
-            if (commandWord.equals("exit")) {
-                isExit = true;
-                System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                System.out.println("Bye. Hope to see you again soon!");
-                System.out.print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            } else if (commandWord.equals("add")) {
+            switch (commandWord) {
+            case "list":
+                printAllExpenses();
+                break;
+            case "help":
+                printHelp();
+                break;
+            case "add":
                 String[] parts = fullCommand.split("\\s+", 3);
                 if (parts.length < 3) {
                     System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     System.out.println("Usage: add <amount> <description>");
                     System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                    continue;
+                    break;
                 }
 
                 try {
@@ -55,18 +62,56 @@ public class SpendSwift {
 
                     AddExpense addCommand = new AddExpense(description, amount);
                     addCommand.execute(expenseList);
+                    storage.save(expenseList);
 
                 } catch (NumberFormatException e) {
                     System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     System.out.println("Amount must be a valid number.");
                     System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 }
-            } else {
-                // The rest of the team will add their commands here!
-                System.out.println("Command not recognized yet! Team is working on it.");
+                break;
+            case "exit":
+                isExit = true;
+                storage.save(expenseList);
+                System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                System.out.println("Bye. Hope to see you again soon!");
+                System.out.print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                break;
+            default:
+                System.out.println("Unknown command. Type 'help' to see available commands.");
+                break;
             }
         }
         scanner.close();
+    }
+
+    /**
+     * Prints the help menu showing all available commands and their formats.
+     */
+    private static void printHelp() {
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Here are the available commands:");
+        System.out.println("  add AMOUNT DESCRIPTION  - Add a new expense");
+        System.out.println("  list                    - List all expenses");
+        System.out.println("  delete INDEX            - Delete an expense by index");
+        System.out.println("  help                    - Show this help menu");
+        System.out.println("  exit                    - Exit the application");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Prints all current expenses to the user
+     */
+    private void printAllExpenses() {
+        if (expenseList.getSize() == 0) {
+            System.out.println("Your expense list is currently empty.");
+            return;
+        }
+
+        System.out.println("Here are your tracked expenses:");
+        for (int i = 0; i < expenseList.getSize(); i++) {
+            System.out.println((i + 1) + ". " + expenseList.getExpense(i).toString());
+        }
     }
 
     /**
