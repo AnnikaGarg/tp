@@ -1,5 +1,8 @@
 package seedu.duke;
 
+/**
+ * Handles the logic for deleting an expense.
+ */
 public class DeleteExpense {
     private int index;
 
