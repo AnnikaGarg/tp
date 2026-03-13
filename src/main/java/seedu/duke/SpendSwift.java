@@ -77,6 +77,28 @@ public class SpendSwift {
                 System.out.println("Bye. Hope to see you again soon!");
                 System.out.print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 break;
+            case "delete":
+                String[] deleteParts = fullCommand.split("\\s+");
+                if (deleteParts.length < 2) {
+                    System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    System.out.println("Usage: delete <index>");
+                    System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    break;
+                }
+
+                try {
+                    int index = Integer.parseInt(deleteParts[1]);
+                    // Assuming you create a DeleteExpense class similar to AddExpense
+                    DeleteExpense deleteCommand = new DeleteExpense(index);
+                    deleteCommand.execute(expenseList);
+                    storage.save(expenseList); // Save immediately after deletion
+
+                } catch (NumberFormatException e) {
+                    System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                    System.out.println("Index must be a valid integer.");
+                    System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                }
+                break;
             default:
                 System.out.println("Unknown command. Type 'help' to see available commands.");
                 break;
@@ -120,6 +142,7 @@ public class SpendSwift {
      * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
+
         new SpendSwift().run();
     }
 }
