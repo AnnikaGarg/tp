@@ -10,21 +10,13 @@ public class DeleteExpense {
         this.index = index;
     }
 
-    public void execute(ExpenseList expenseList) {
+    public void execute(ExpenseList expenseList, Ui ui) {
         try {
             // Convert 1-based user input to 0-based index
             Expense removed = expenseList.deleteExpense(index - 1);
-
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            System.out.println("Noted. I've removed this expense:");
-            System.out.println("  " + removed);
-            System.out.println("Now you have " + expenseList.getSize() + " expenses in the list.");
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
+            ui.showDeleteExpense(removed, expenseList.getSize());
         } catch (IndexOutOfBoundsException e) {
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            System.out.println("Invalid index! Use 'list' to see valid numbers.");
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            ui.showInvalidIndex();
         }
     }
 }

@@ -20,15 +20,10 @@ public class AddExpense {
      *
      * @param expenseList The list where the expense will be stored.
      */
-    public void execute(ExpenseList expenseList) {
+    public void execute(ExpenseList expenseList, Ui ui) {
         Expense expense = new Expense(description, amount);
         expenseList.addExpense(expense);
-
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        System.out.println("Got it. I've added this expense:");
-        System.out.println("  " + expense);
-        System.out.println("Now you have " + expenseList.getSize() + " expense(s) in the list.");
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        ui.showAddExpense(expense, expenseList.getSize());
     }
 }
 
