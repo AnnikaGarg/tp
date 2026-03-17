@@ -5,19 +5,19 @@ package seedu.duke;
  */
 public class ListCommand extends Command {
 
+    /**
+     * Constructs a ListCommand with the specified Ui instance.
+     *
+     * @param ui The Ui object used to display messages.
+     */
+    public ListCommand(Ui ui) {
+        super(ui);
+    }
+
     @Override
     public void execute(ExpenseList expenseList) {
         // Defensive coding: Ensure expenseList is never null when this executes
         assert expenseList != null : "ExpenseList should not be null in ListCommand";
-
-        if (expenseList.getSize() == 0) {
-            System.out.println("Your expense list is currently empty.");
-            return;
-        }
-
-        System.out.println("Here are your tracked expenses:");
-        for (int i = 0; i < expenseList.getSize(); i++) {
-            System.out.println((i + 1) + ". " + expenseList.getExpense(i).toString());
-        }
+        ui.showExpenseList(expenseList);
     }
 }

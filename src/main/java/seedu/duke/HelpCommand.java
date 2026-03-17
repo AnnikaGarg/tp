@@ -5,15 +5,16 @@ package seedu.duke;
  */
 public class HelpCommand extends Command {
 
+    /**
+     * Constructs a HelpCommand with the specified Ui instance.
+     *
+     * @param ui The Ui object used to display messages.
+     */
+    HelpCommand(Ui ui){
+        super(ui);
+    }
     @Override
     public void execute(ExpenseList expenseList) {
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        System.out.println("Here are the available commands:");
-        System.out.println("  add AMOUNT DESCRIPTION  - Add a new expense");
-        System.out.println("  list                    - List all expenses");
-        System.out.println("  delete INDEX            - Delete an expense by index");
-        System.out.println("  help                    - Show this help menu");
-        System.out.println("  exit                    - Exit the application");
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        ui.showHelp();
     }
 }
