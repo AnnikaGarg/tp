@@ -32,4 +32,14 @@ public class DeleteCommand extends Command {
             ui.showInvalidIndex();
         }
     }
+
+    /**
+     * Returns true because deleting an expense updates persisted data.
+     *
+     * @return true to indicate this command should be saved.
+     */
+    @Override
+    public boolean shouldPersist() {
+        return true;
+    }
 }

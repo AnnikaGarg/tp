@@ -18,4 +18,14 @@ public class ExitCommand extends Command {
         this.isExit = true;
         ui.showExit();
     }
+
+    /**
+     * Returns true so data is persisted before application shutdown.
+     *
+     * @return true to indicate this command should be saved.
+     */
+    @Override
+    public boolean shouldPersist() {
+        return true;
+    }
 }

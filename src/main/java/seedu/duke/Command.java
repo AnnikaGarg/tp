@@ -25,6 +25,15 @@ public abstract class Command {
     public abstract void execute(ExpenseList expenseList);
 
     /**
+     * Returns whether this command should trigger data persistence after execution.
+     *
+     * @return true if this command mutates data that should be saved.
+     */
+    public boolean shouldPersist() {
+        return false;
+    }
+
+    /**
      * Checks if this command is intended to exit the application.
      *
      * @return true if it is an exit command, false otherwise.

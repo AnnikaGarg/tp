@@ -43,18 +43,12 @@ public class SpendSwift {
                 }
 
                 command.execute(expenseList);
-                if (isSaveRequired(command)) {
+                if (command.shouldPersist()) {
                     storage.save(expenseList);
                 }
                 isExit = command.isExit();
             }
         }
-    }
-
-    private boolean isSaveRequired(Command command) {
-        return command instanceof AddCommand
-                || command instanceof DeleteCommand
-                || command instanceof ExitCommand;
     }
 
     /**

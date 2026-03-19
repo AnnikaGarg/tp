@@ -36,4 +36,14 @@ public class AddCommand extends Command {
         expenseList.addExpense(expense);
         ui.showAddExpense(expense, expenseList.getSize());
     }
+
+    /**
+     * Returns true because adding an expense updates persisted data.
+     *
+     * @return true to indicate this command should be saved.
+     */
+    @Override
+    public boolean shouldPersist() {
+        return true;
+    }
 }
