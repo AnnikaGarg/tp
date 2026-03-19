@@ -16,6 +16,10 @@ public class AddCommand extends Command {
      */
     public AddCommand(Ui ui, String description, double amount) {
         super(ui);
+        assert ui != null : "Ui cannot be null";
+        assert description != null : "Description cannot be null";
+        assert !description.isEmpty() : "Description cannot be empty";
+        assert amount >= 0 : "Amount must be non-negative";
         this.description = description;
         this.amount = amount;
     }
@@ -27,6 +31,7 @@ public class AddCommand extends Command {
      */
     @Override
     public void execute(ExpenseList expenseList) {
+        assert expenseList != null : "ExpenseList cannot be null";
         Expense expense = new Expense(description, amount);
         expenseList.addExpense(expense);
         ui.showAddExpense(expense, expenseList.getSize());
