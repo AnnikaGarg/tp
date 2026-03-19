@@ -2,6 +2,7 @@ package seedu.duke;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ExpenseListTest {
 
@@ -31,5 +32,11 @@ public class ExpenseListTest {
 
         assertEquals("Bus fare", retrievedExpense.getDescription());
         assertEquals(2.00, retrievedExpense.getAmount());
+    }
+
+    @Test
+    public void addExpense_nullExpense_throwsIllegalArgumentException() {
+        ExpenseList expenseList = new ExpenseList();
+        assertThrows(IllegalArgumentException.class, () -> expenseList.addExpense(null));
     }
 }

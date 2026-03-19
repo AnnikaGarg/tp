@@ -2,6 +2,7 @@ package seedu.duke;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ExpenseTest {
 
@@ -25,5 +26,20 @@ public class ExpenseTest {
     public void getAmount_validExpense_returnsCorrectAmount() {
         Expense expense = new Expense("Bus ticket", 1.50);
         assertEquals(1.50, expense.getAmount());
+    }
+
+    @Test
+    public void constructor_negativeAmount_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Expense("Lunch", -1.00));
+    }
+
+    @Test
+    public void constructor_nanAmount_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Expense("Lunch", Double.NaN));
+    }
+
+    @Test
+    public void constructor_emptyDescription_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Expense("   ", 2.00));
     }
 }

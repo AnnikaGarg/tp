@@ -35,4 +35,12 @@ public class DeleteCommandTest {
         // Should handle the error gracefully and keep the list intact
         assertEquals(2, expenseList.getSize());
     }
+
+    @Test
+    public void execute_zeroIndex_doesNotChangeListSize() {
+        DeleteCommand deleteCommand = new DeleteCommand(ui, 0);
+        deleteCommand.execute(expenseList);
+
+        assertEquals(2, expenseList.getSize());
+    }
 }

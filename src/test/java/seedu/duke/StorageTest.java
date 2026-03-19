@@ -1,6 +1,7 @@
 package seedu.duke;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,5 +62,41 @@ public class StorageTest {
         assertEquals(1, loadedList.getSize());
         assertEquals("Snacks", loadedList.getExpense(0).getDescription());
         assertEquals(6.75, loadedList.getExpense(0).getAmount(), 0.0001);
+    }
+
+    @Test
+    public void load_negativeAmountLine_skipsInvalidAmountData() throws IOException {
+        Path dataFilePath = tempDir.resolve("expenses-negative-amount.txt");
+        Files.writeString(dataFilePath, "-2.50 | Dinner\n1.00 | Apple\n");
+
+        Storage storage = new Storage(dataFilePath.toString(), new Ui());
+        ExpenseList loadedList = new ExpenseList();
+        storage.load(loadedList);
+
+        assertEquals(1, loadedList.getSize());
+        assertEquals("Apple", loadedList.getExpense(0).getDescription());
+        assertEquals(1.00, loadedList.getExpense(0).getAmount(), 0.0001);
+    }
+
+    @Test
+    public void constructor_nullPath_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Storage(null, new Ui()));
+    }
+
+    @Test
+    public void constructor_nullUi_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Storage("data/expenses.txt", null));
+    }
+
+    @Test
+    public void load_nullExpenseList_throwsIllegalArgumentException() {
+        Storage storage = new Storage(tempDir.resolve("expenses.txt").toString(), new Ui());
+        assertThrows(IllegalArgumentException.class, () -> storage.load(null));
+    }
+
+    @Test
+    public void save_nullExpenseList_throwsIllegalArgumentException() {
+        Storage storage = new Storage(tempDir.resolve("expenses.txt").toString(), new Ui());
+        assertThrows(IllegalArgumentException.class, () -> storage.save(null));
     }
 }

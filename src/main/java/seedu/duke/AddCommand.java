@@ -4,8 +4,8 @@ package seedu.duke;
  * Handles the logic for adding a new expense.
  */
 public class AddCommand extends Command {
-    private String description;
-    private double amount;
+    private final String description;
+    private final double amount;
 
     /**
      * Constructs an AddCommand with the specified Ui, description and amount.

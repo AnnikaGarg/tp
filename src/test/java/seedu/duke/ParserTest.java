@@ -5,9 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ParserTest {
-    private Ui ui = new Ui();
+    private final Ui ui = new Ui();
 
     @Test
     public void parse_listCommand_returnsListCommand() {
@@ -36,9 +37,6 @@ public class ParserTest {
     @Test
     public void parse_addCommandValidArguments_returnsCommand() {
         Command command = Parser.parse("add 5.50 Coffee", ui);
-        // Note: Because we are using the anonymous class workaround for AddExpense right now,
-        // we can only assert that it returns a valid Command object.
-        // Once Krishna refactors, you can change this to: assertTrue(command instanceof AddCommand)
         assertNotNull(command, "Parser should return a Command object for valid add inputs");
         assertFalse(command.isExit(), "Add command should not trigger exit");
     }
@@ -47,5 +45,28 @@ public class ParserTest {
     public void parse_deleteCommandInvalidNumber_returnsNull() {
         Command command = Parser.parse("delete abc", ui);
         assertNull(command, "Parser should return null if index is not a number");
+    }
+
+    @Test
+    public void parse_addCommandNegativeAmount_returnsNull() {
+        Command command = Parser.parse("add -3.50 Coffee", ui);
+        assertNull(command, "Parser should return null when amount is negative");
+    }
+
+    @Test
+    public void parse_deleteCommandZeroIndex_returnsNull() {
+        Command command = Parser.parse("delete 0", ui);
+        assertNull(command, "Parser should return null when index is zero");
+    }
+
+    @Test
+    public void parse_nullCommand_returnsNull() {
+        Command command = Parser.parse(null, ui);
+        assertNull(command, "Parser should return null for null commands");
+    }
+
+    @Test
+    public void parse_nullUi_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> Parser.parse("list", null));
     }
 }
