@@ -12,6 +12,7 @@ public class HelpCommand extends Command {
      */
     HelpCommand(Ui ui){
         super(ui);
+        assert ui != null : "Ui cannot be null";
     }
     @Override
     public void execute(ExpenseList expenseList) {
