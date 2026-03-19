@@ -7,7 +7,7 @@ import java.util.ArrayList;
  * Handles adding, deleting, and retrieving expenses.
  */
 public class ExpenseList {
-    private ArrayList<Expense> expenses;
+    private final ArrayList<Expense> expenses;
 
     public ExpenseList() {
         this.expenses = new ArrayList<>();
@@ -17,6 +17,9 @@ public class ExpenseList {
      * Adds a new expense to the end of the list.
      */
     public void addExpense(Expense expense) {
+        if (expense == null) {
+            throw new IllegalArgumentException("Expense must not be null");
+        }
         expenses.add(expense);
     }
 

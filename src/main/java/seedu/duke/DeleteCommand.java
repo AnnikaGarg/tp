@@ -4,7 +4,7 @@ package seedu.duke;
  * Handles the logic for deleting an expense.
  */
 public class DeleteCommand extends Command {
-    private int index;
+    private final int index;
 
     /**
      * Constructs a DeleteCommand with the specified Ui and expense index.
@@ -24,6 +24,10 @@ public class DeleteCommand extends Command {
      */
     @Override
     public void execute(ExpenseList expenseList) {
+        if (index <= 0) {
+            ui.showInvalidIndex();
+            return;
+        }
         try {
             // Convert 1-based user input to 0-based index
             Expense removed = expenseList.deleteExpense(index - 1);

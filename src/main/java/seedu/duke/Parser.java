@@ -13,7 +13,19 @@ public class Parser {
      * @return The corresponding Command object, or null if invalid.
      */
     public static Command parse(String fullCommand, Ui ui) {
-        String[] parts = fullCommand.trim().split("\\s+", 2);
+        if (ui == null) {
+            throw new IllegalArgumentException("Ui must not be null");
+        }
+        if (fullCommand == null) {
+            return null;
+        }
+
+        String trimmedCommand = fullCommand.trim();
+        if (trimmedCommand.isEmpty()) {
+            return null;
+        }
+
+        String[] parts = trimmedCommand.split("\\s+", 2);
         String commandWord = parts[0].toLowerCase();
         String arguments = parts.length > 1 ? parts[1].trim() : "";
 
@@ -42,6 +54,14 @@ public class Parser {
             try {
                 double amount = Double.parseDouble(addParts[0]);
                 String description = addParts[1];
+                if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
+                    ui.showInvalidAmount();
+                    return null;
+                }
+                if (description.isEmpty()) {
+                    ui.showAddUsage();
+                    return null;
+                }
                 return new AddCommand(ui, description, amount);
             } catch (NumberFormatException e) {
                 ui.showInvalidAmount();
@@ -56,6 +76,10 @@ public class Parser {
 
             try {
                 int index = Integer.parseInt(arguments);
+                if (index <= 0) {
+                    ui.showInvalidIndex();
+                    return null;
+                }
                 return new DeleteCommand(ui, index);
             } catch (NumberFormatException e) {
                 ui.showInvalidIndexFormat();

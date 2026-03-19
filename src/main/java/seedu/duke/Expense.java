@@ -5,8 +5,8 @@ package seedu.duke;
  * Contains the description and the monetary amount of the expense.
  */
 public class Expense {
-    protected String description;
-    protected double amount;
+    private final String description;
+    private final double amount;
 
     /**
      * Constructs an Expense object with the specified description and amount.
@@ -15,8 +15,14 @@ public class Expense {
      * @param amount The monetary cost of the expense.
      */
     public Expense(String description, double amount) {
+        if (description == null || description.trim().isEmpty()) {
+            throw new IllegalArgumentException("Description must not be empty");
+        }
+        if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
+            throw new IllegalArgumentException("Amount must be a non-negative finite value");
+        }
         assert amount >= 0 : "Expense amount cannot be negative";
-        this.description = description;
+        this.description = description.trim();
         this.amount = amount;
     }
 

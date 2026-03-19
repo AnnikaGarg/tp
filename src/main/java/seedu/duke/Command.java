@@ -6,7 +6,7 @@ package seedu.duke;
  */
 public abstract class Command {
     protected boolean isExit = false;
-    protected Ui ui;
+    protected final Ui ui;
 
     /**
      * Constructs a Command with the specified Ui instance.
@@ -14,6 +14,9 @@ public abstract class Command {
      * @param ui The Ui object used to display user-facing messages.
      */
     public Command(Ui ui) {
+        if (ui == null) {
+            throw new IllegalArgumentException("Ui must not be null");
+        }
         this.ui = ui;
     }
 
