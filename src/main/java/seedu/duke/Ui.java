@@ -53,10 +53,10 @@ public class Ui {
         System.out.println("Here are the available commands:");
         System.out.println("  add AMOUNT DESCRIPTION  - Add a new expense");
         System.out.println("  list                    - List all expenses");
+        System.out.println("  total                   - Calculate the total amount spent");
         System.out.println("  delete INDEX            - Delete an expense by index");
         System.out.println("  help                    - Show this help menu");
         System.out.println("  exit                    - Exit the application");
-        System.out.println("  total                   - Calculate the total amount spent");
         System.out.println(LINE);
     }
 
