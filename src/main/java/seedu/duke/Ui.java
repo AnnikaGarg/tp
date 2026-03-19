@@ -179,4 +179,17 @@ public class Ui {
         System.out.println("Warning: Skipping line with invalid amount: " + line);
         System.out.println(LINE);
     }
+
+    /**
+     * Displays the total sum of all expenses.
+     *
+     * @param total The calculated total amount.
+     * @param count The number of expenses tracked.
+     */
+    public void showTotal(double total, int count) {
+        System.out.println(LINE);
+        System.out.println("You have " + count + " expense(s) in your list.");
+        System.out.println("Your total spending is: $" + String.format("%.2f", total));
+        System.out.println(LINE);
+    }
 }

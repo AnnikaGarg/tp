@@ -86,6 +86,9 @@ public class Parser {
                 return null;
             }
 
+        case "total":
+            return new TotalCommand(ui);
+
         default:
             ui.showUnknownCommand();
             return null;

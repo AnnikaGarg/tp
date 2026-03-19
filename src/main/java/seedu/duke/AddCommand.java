@@ -19,7 +19,7 @@ public class AddCommand extends Command {
         assert ui != null : "Ui cannot be null";
         assert description != null : "Description cannot be null";
         assert !description.isEmpty() : "Description cannot be empty";
-        assert amount >= 0 : "Amount must be non-negative";
+        assert amount > 0 : "Amount must be non-negative";
         this.description = description;
         this.amount = amount;
     }
