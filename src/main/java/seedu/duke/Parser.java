@@ -31,12 +31,25 @@ public class Parser {
 
         switch (commandWord) {
         case "list":
+            // BUG FIX: help s / list s / exit s should not be allowed
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
+                return null;
+            }
             return new ListCommand(ui);
 
         case "help":
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
+                return null;
+            }
             return new HelpCommand(ui);
 
         case "exit":
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
+                return null;
+            }
             return new ExitCommand(ui);
 
         case "add":
@@ -62,7 +75,12 @@ public class Parser {
                     ui.showAddUsage();
                     return null;
                 }
-                return new AddCommand(ui, description, amount);
+
+                // COMPILER FIX: Passing null for Category and Date
+                // This allows the app to compile and use your "Others" and "Today" defaults
+                // until Nishchay implements the logic to extract /c and /d.
+                return new AddCommand(ui, description, amount, null, null);
+
             } catch (NumberFormatException e) {
                 ui.showInvalidAmount();
                 return null;
@@ -87,6 +105,10 @@ public class Parser {
             }
 
         case "total":
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
+                return null;
+            }
             return new TotalCommand(ui);
 
         default:

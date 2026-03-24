@@ -3,6 +3,8 @@ package seedu.duke;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +39,7 @@ public class Storage {
     /**
      * Loads expenses from the data file into the given ExpenseList.
      * If the file does not exist, an empty list is returned.
+     * Supports loading both v1.0 and v2.0 save file formats.
      *
      * @param expenseList The ExpenseList to populate with saved data.
      */
@@ -68,6 +71,7 @@ public class Storage {
     /**
      * Saves all expenses from the given ExpenseList to the data file.
      * Creates the parent directory if it does not exist.
+     * Saves using the v2.0 format: AMOUNT | DATE | CATEGORY | DESCRIPTION.
      *
      * @param expenseList The ExpenseList whose data should be saved.
      */
@@ -88,8 +92,11 @@ public class Storage {
         try (FileWriter writer = new FileWriter(file)) {
             for (int i = 0; i < expenseList.getSize(); i++) {
                 Expense expense = expenseList.getExpense(i);
-                writer.write(expense.getAmount() + SEPARATOR + expense.getDescription()
-                        + System.lineSeparator());
+                // NEW FORMAT: AMOUNT | DATE | CATEGORY | DESCRIPTION
+                writer.write(expense.getAmount() + SEPARATOR +
+                        expense.getDate().toString() + SEPARATOR +
+                        expense.getCategory() + SEPARATOR +
+                        expense.getDescription() + System.lineSeparator());
             }
         } catch (IOException e) {
             ui.showSaveWarning();
@@ -99,30 +106,52 @@ public class Storage {
 
     /**
      * Parses a single line from the data file into an Expense object.
+     * Handles backwards compatibility for old v1.0 saves.
      *
-     * @param line The line to parse, in the format "AMOUNT | DESCRIPTION".
+     * @param line The line to parse.
      * @return The parsed Expense, or null if the line is malformed.
      */
     private Expense parseLine(String line) {
         if (line == null || line.trim().isEmpty()) {
             return null;
         }
-        String[] parts = line.split("\\|", 2);
-        if (parts.length < 2) {
-            ui.showMalformedLineWarning(line);
-            logger.warning("Malformed storage line skipped: " + line);
-            return null;
-        }
+
+        // Split into a maximum of 4 parts to protect descriptions that contain the separator character
+        String[] parts = line.split("\\|", 4);
+
         try {
-            double amount = Double.parseDouble(parts[0].trim());
-            String description = parts[1].trim();
-            if (description.isEmpty()) {
+            if (parts.length == 2) {
+                // BACKWARD COMPATIBILITY: v1.0 Format (AMOUNT | DESCRIPTION)
+                double amount = Double.parseDouble(parts[0].trim());
+                String description = parts[1].trim();
+                if (description.isEmpty()) {
+                    ui.showMalformedLineWarning(line);
+                    logger.warning("Storage line with empty description skipped: " + line);
+                    return null;
+                }
+                return new Expense(description, amount, null, null);
+
+            } else if (parts.length == 4) {
+                // v2.0 FORMAT (AMOUNT | DATE | CATEGORY | DESCRIPTION)
+                double amount = Double.parseDouble(parts[0].trim());
+                LocalDate date = LocalDate.parse(parts[1].trim()); // Requires YYYY-MM-DD
+                String category = parts[2].trim();
+                String description = parts[3].trim();
+
+                if (description.isEmpty()) {
+                    ui.showMalformedLineWarning(line);
+                    logger.warning("Storage line with empty description skipped: " + line);
+                    return null;
+                }
+                return new Expense(description, amount, category, date);
+
+            } else {
                 ui.showMalformedLineWarning(line);
-                logger.warning("Storage line with empty description skipped: " + line);
+                logger.warning("Malformed storage line skipped (incorrect segment count): " + line);
                 return null;
             }
-            return new Expense(description, amount);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | DateTimeParseException e) {
+            // Catches invalid doubles and invalid date formats
             ui.showInvalidAmountLineWarning(line);
             logger.log(Level.WARNING, "Storage line with invalid data skipped: " + line, e);
             return null;
