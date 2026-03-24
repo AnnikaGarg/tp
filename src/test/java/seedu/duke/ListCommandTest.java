@@ -22,8 +22,8 @@ public class ListCommandTest {
         ExpenseList expenseList = new ExpenseList();
 
         // Add some dummy data
-        expenseList.addExpense(new Expense("Lunch", 10.50));
-        expenseList.addExpense(new Expense("Bus Fare", 2.00));
+        expenseList.addExpense(new Expense("Lunch", 10.50, null, null));
+        expenseList.addExpense(new Expense("Bus Fare", 2.00, null, null));
 
         ListCommand listCommand = new ListCommand(ui);
 

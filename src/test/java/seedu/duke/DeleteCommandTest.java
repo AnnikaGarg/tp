@@ -12,8 +12,8 @@ public class DeleteCommandTest {
     public void setUp() {
         expenseList = new ExpenseList();
         ui = new Ui();
-        expenseList.addExpense(new Expense("Lunch", 10.00));
-        expenseList.addExpense(new Expense("Dinner", 20.00));
+        expenseList.addExpense(new Expense("Lunch", 10.00, null, null));
+        expenseList.addExpense(new Expense("Dinner", 20.00, null, null));
     }
 
     @Test

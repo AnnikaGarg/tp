@@ -20,7 +20,7 @@ public class TotalCommandTest {
         Ui ui = new Ui();
         ExpenseList expenseList = new ExpenseList();
 
-        expenseList.addExpense(new Expense("Coffee", 5.50));
+        expenseList.addExpense(new Expense("Coffee", 5.50, null, null));
 
         TotalCommand totalCommand = new TotalCommand(ui);
 
@@ -33,9 +33,9 @@ public class TotalCommandTest {
         Ui ui = new Ui();
         ExpenseList expenseList = new ExpenseList();
 
-        expenseList.addExpense(new Expense("Lunch", 10.50));
-        expenseList.addExpense(new Expense("Bus Fare", 2.00));
-        expenseList.addExpense(new Expense("Movie", 15.00));
+        expenseList.addExpense(new Expense("Lunch", 10.50, null, null));
+        expenseList.addExpense(new Expense("Bus Fare", 2.00, null, null));
+        expenseList.addExpense(new Expense("Movie", 15.00, null, null));
 
         TotalCommand totalCommand = new TotalCommand(ui);
 

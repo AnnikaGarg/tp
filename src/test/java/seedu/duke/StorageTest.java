@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate; // NEW IMPORT
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,8 +22,9 @@ public class StorageTest {
         Storage storage = new Storage(dataFilePath.toString(), new Ui());
 
         ExpenseList originalList = new ExpenseList();
-        originalList.addExpense(new Expense("Lunch", 12.50));
-        originalList.addExpense(new Expense("Transport", 2.10));
+        // UPDATED: Now uses the v2.0 constructor with category and date
+        originalList.addExpense(new Expense("Lunch", 12.50, "Food", LocalDate.parse("2026-03-24")));
+        originalList.addExpense(new Expense("Transport", 2.10, "Travel", LocalDate.parse("2026-03-25")));
 
         storage.save(originalList);
 
@@ -30,15 +32,23 @@ public class StorageTest {
         storage.load(loadedList);
 
         assertEquals(2, loadedList.getSize());
+
+        // Assertions for the first expense (including new fields)
         assertEquals("Lunch", loadedList.getExpense(0).getDescription());
         assertEquals(12.50, loadedList.getExpense(0).getAmount(), 0.0001);
+        assertEquals("Food", loadedList.getExpense(0).getCategory());
+        assertEquals(LocalDate.parse("2026-03-24"), loadedList.getExpense(0).getDate());
+
+        // Assertions for the second expense
         assertEquals("Transport", loadedList.getExpense(1).getDescription());
         assertEquals(2.10, loadedList.getExpense(1).getAmount(), 0.0001);
+        assertEquals("Travel", loadedList.getExpense(1).getCategory());
     }
 
     @Test
     public void load_malformedLine_skipsMalformedData() throws IOException {
         Path dataFilePath = tempDir.resolve("expenses-malformed.txt");
+        // This is brilliant: it tests your v1.0 backward compatibility automatically!
         Files.writeString(dataFilePath, "8.50 | Breakfast\nmalformed line\n3.20 | Coffee\n");
 
         Storage storage = new Storage(dataFilePath.toString(), new Ui());

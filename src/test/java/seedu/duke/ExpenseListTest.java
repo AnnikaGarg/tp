@@ -15,7 +15,7 @@ public class ExpenseListTest {
     @Test
     public void addExpense_singleExpense_sizeIncreasesToOne() {
         ExpenseList expenseList = new ExpenseList();
-        Expense testExpense = new Expense("Lunch", 5.50);
+        Expense testExpense = new Expense("Lunch", 5.50, null, null);
 
         expenseList.addExpense(testExpense);
 
@@ -25,7 +25,7 @@ public class ExpenseListTest {
     @Test
     public void getExpense_validIndex_returnsCorrectExpense() {
         ExpenseList expenseList = new ExpenseList();
-        Expense testExpense = new Expense("Bus fare", 2.00);
+        Expense testExpense = new Expense("Bus fare", 2.00, null, null);
         expenseList.addExpense(testExpense);
 
         Expense retrievedExpense = expenseList.getExpense(0);
