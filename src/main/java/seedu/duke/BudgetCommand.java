@@ -14,6 +14,8 @@ public class BudgetCommand extends Command {
      */
     public BudgetCommand(Ui ui, double budgetAmount) {
         super(ui);
+        assert ui != null : "Ui must not be null";
+        assert budgetAmount >= 0 : "Budget amount must be non-negative";
         this.budgetAmount = budgetAmount;
     }
 
@@ -24,6 +26,7 @@ public class BudgetCommand extends Command {
      */
     @Override
     public void execute(ExpenseList expenseList) {
+        assert expenseList != null : "ExpenseList must not be null";
         expenseList.setBudget(budgetAmount);
         ui.showBudgetSet(budgetAmount);
     }
