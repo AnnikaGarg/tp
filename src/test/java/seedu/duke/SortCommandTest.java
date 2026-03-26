@@ -56,7 +56,7 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_sortByDate_emptyList_noException() {
+    public void execute_sortByDate_emptyList() {
         ExpenseList list = new ExpenseList();
         new SortCommand(ui, "date").execute(list);
         assertEquals(0, list.getSize());
