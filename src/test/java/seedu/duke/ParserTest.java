@@ -83,4 +83,16 @@ public class ParserTest {
     public void parse_nullUi_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> Parser.parse("list", null));
     }
+
+    @Test
+    public void parse_findCommandValidKeyword_returnsFindCommand() {
+        Command command = Parser.parse("find coffee", ui);
+        assertTrue(command instanceof FindCommand, "Parser should return a FindCommand for valid find input");
+    }
+
+    @Test
+    public void parse_findCommandNoKeyword_returnsNull() {
+        Command command = Parser.parse("find", ui);
+        assertNull(command, "Parser should return null when find has no keyword");
+    }
 }

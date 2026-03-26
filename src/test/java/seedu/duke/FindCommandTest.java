@@ -1,8 +1,11 @@
 package seedu.duke;
 
 import org.junit.jupiter.api.Test;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FindCommandTest {
 
@@ -68,5 +71,44 @@ public class FindCommandTest {
         Ui ui = new Ui();
         FindCommand cmd = new FindCommand(ui, "coffee");
         assertFalse(cmd.shouldPersist());
+    }
+
+    @Test
+    public void execute_matchingKeyword_outputContainsDescription() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "coffee").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("Coffee"), "Output should contain the matched expense description");
+    }
+
+    @Test
+    public void execute_noMatch_outputContainsNoExpensesMessage() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "sushi").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("No expenses found matching"), "Output should state no matches found");
+    }
+
+    @Test
+    public void execute_categoryKeyword_outputContainsMatchedExpense() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "transport").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("Bus ride"), "Output should contain expense whose category matched");
     }
 }
