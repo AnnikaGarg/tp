@@ -73,6 +73,7 @@ public class Ui {
         System.out.println("  delete INDEX                              - Delete an expense by index");
         System.out.println("  edit INDEX [/a AMOUNT] [/de DESC]         - Edit an existing expense");
         System.out.println("             [/c CATEGORY] [/da DATE]");
+        System.out.println("  find KEYWORD                              - Find expenses by keyword");
         System.out.println("  help                                      - Show this help menu");
         System.out.println("  exit                                      - Exit the application");
         System.out.println("Note: DATE must be in YYYY-MM-DD format (e.g. 2026-03-24).");
@@ -279,6 +280,35 @@ public class Ui {
     public void showInvalidBudget() {
         System.out.println(LINE);
         System.out.println("Budget must be a valid non-negative number.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays the correct usage format for the find command.
+     */
+    public void showFindUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: find KEYWORD");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays the list of expenses that match the search keyword.
+     *
+     * @param results The list of matching expenses.
+     * @param keyword The keyword that was searched.
+     */
+    public void showFindResults(java.util.ArrayList<Expense> results, String keyword) {
+        System.out.println(LINE);
+        if (results.isEmpty()) {
+            System.out.println("No expenses found matching: " + keyword);
+            System.out.println(LINE);
+            return;
+        }
+        System.out.println("Here are the matching expenses for \"" + keyword + "\":");
+        for (int i = 0; i < results.size(); i++) {
+            System.out.println((i + 1) + ". " + results.get(i));
+        }
         System.out.println(LINE);
     }
 }

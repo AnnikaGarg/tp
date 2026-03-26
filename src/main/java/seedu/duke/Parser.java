@@ -79,6 +79,13 @@ public class Parser {
         case "edit":
             return parseEditCommand(arguments, ui);
 
+        case "find":
+            if (arguments.isEmpty()) {
+                ui.showFindUsage();
+                return null;
+            }
+            return new FindCommand(ui, arguments);
+
         case "budget":
             if (arguments.isEmpty()) {
                 ui.showBudgetUsage();
