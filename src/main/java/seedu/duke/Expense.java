@@ -1,6 +1,5 @@
 package seedu.duke;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 /**
  * Represents a single financial expense tracked by the user.
  * Contains the description, monetary amount, category, and date of the expense.
