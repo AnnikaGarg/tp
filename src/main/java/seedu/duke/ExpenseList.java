@@ -1,22 +1,20 @@
 package seedu.duke;
-
 import java.util.ArrayList;
-
 /**
- * Represents the list of expenses.
- * Handles adding, deleting, and retrieving expenses.
+ * Represents the list of expenses tracked by the user.
+ * Handles adding, deleting, retrieving, and replacing expenses.
  */
 public class ExpenseList {
     private final ArrayList<Expense> expenses;
     private double budget;
-
     public ExpenseList() {
         this.expenses = new ArrayList<>();
         this.budget = -1;
     }
-
     /**
      * Adds a new expense to the end of the list.
+     *
+     * @param expense The expense to add.
      */
     public void addExpense(Expense expense) {
         if (expense == null) {
@@ -24,21 +22,35 @@ public class ExpenseList {
         }
         expenses.add(expense);
     }
-
     /**
      * Returns the current number of expenses in the list.
+     *
+     * @return The number of expenses currently in the list.
      */
     public int getSize() {
         return expenses.size();
     }
-
     /**
-     * Retrieves an expense from the list based on its index.
+     * Returns the expense at the specified 0-based index.
+     *
+     * @param index The 0-based position of the expense to retrieve.
+     * @return The expense at the given index.
      */
     public Expense getExpense(int index) {
         return expenses.get(index);
     }
-
+    /**
+     * Replaces the expense at the given 0-based index with a new one.
+     *
+     * @param index   The 0-based position of the expense to replace.
+     * @param expense The new Expense object to store at that position.
+     */
+    public void setExpense(int index, Expense expense) {
+        if (expense == null) {
+            throw new IllegalArgumentException("Expense must not be null");
+        }
+        expenses.set(index, expense);
+    }
     /**
      * Sets the spending budget.
      *
@@ -51,7 +63,6 @@ public class ExpenseList {
         }
         this.budget = budget;
     }
-
     /**
      * Returns the currently set budget.
      *
@@ -60,7 +71,6 @@ public class ExpenseList {
     public double getBudget() {
         return budget;
     }
-
     /**
      * Returns whether a budget has been set.
      *
@@ -69,7 +79,6 @@ public class ExpenseList {
     public boolean hasBudget() {
         return budget >= 0;
     }
-
     /**
      * Calculates the total amount of all expenses.
      *
@@ -82,7 +91,6 @@ public class ExpenseList {
         }
         return total;
     }
-
     /**
      * Checks whether the total spending exceeds the budget.
      *
@@ -91,10 +99,12 @@ public class ExpenseList {
     public boolean isOverBudget() {
         return hasBudget() && getTotalAmount() > budget;
     }
-
     /**
-     * Removes an expense from the list and returns the removed item.
-     * Required for Issue 3.
+     * Removes and returns the expense at the given 0-based index.
+     *
+     * @param index The 0-based position of the expense to delete.
+     * @return The expense that was removed.
+     * @throws IndexOutOfBoundsException If the index is out of range.
      */
     public Expense deleteExpense(int index) throws IndexOutOfBoundsException {
         return expenses.remove(index);

@@ -1,17 +1,29 @@
 package seedu.duke;
+
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 /**
- * Parses user input into meaningful commands.
+ * Parses raw user input strings into executable Command objects.
+ * The add command uses /c for category and /d for date.
+ * The edit command uses /category for category, /date for date,
+ * /amount for amount, and /desc for description.
  */
 public class Parser {
 
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+
     /**
-     * Parses the full command string from the user and returns the appropriate Command object.
+     * Parses a full command string entered by the user and returns the matching Command.
+     * Returns null when the input is empty, null, or does not match any known command.
      *
      * @param fullCommand The raw string entered by the user.
-     * @param ui The UI instance to pass to commands or use for error messages.
-     * @return The corresponding Command object, or null if invalid.
+     * @param ui          The Ui instance used to display error or usage messages.
+     * @return The corresponding Command object, or null if the input is invalid.
+     * @throws IllegalArgumentException If ui is null.
      */
     public static Command parse(String fullCommand, Ui ui) {
         if (ui == null) {
@@ -32,7 +44,6 @@ public class Parser {
 
         switch (commandWord) {
         case "list":
-            // BUG FIX: help s / list s / exit s should not be allowed
             if (!arguments.isEmpty()) {
                 ui.showUnknownCommand();
                 return null;
@@ -54,75 +65,20 @@ public class Parser {
             return new ExitCommand(ui);
 
         case "add":
-            if (arguments.isEmpty()) {
-                ui.showAddUsage();
+            return parseAddCommand(arguments, ui);
+
+        case "delete":
+            return parseDeleteCommand(arguments, ui);
+
+        case "total":
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
                 return null;
             }
+            return new TotalCommand(ui);
 
-            String[] addParts = arguments.split("\\s+", 2);
-            if (addParts.length < 2) {
-                ui.showAddUsage();
-                return null;
-            }
-
-            try {
-                // 1. Extract Amount
-                double amount = Double.parseDouble(addParts[0]);
-                if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
-                    ui.showInvalidAmount();
-                    return null;
-                }
-
-                // 2. Extract Description, Category, and Date
-                String remaining = addParts[1];
-                String description = "";
-                String category = null;
-                LocalDate date = null;
-
-                int catIndex = remaining.indexOf("/c ");
-                int dateIndex = remaining.indexOf("/d ");
-
-                // Find where the description ends (before the first flag)
-                int descEnd = remaining.length();
-                if (catIndex != -1 && dateIndex != -1) {
-                    descEnd = Math.min(catIndex, dateIndex);
-                } else if (catIndex != -1) {
-                    descEnd = catIndex;
-                } else if (dateIndex != -1) {
-                    descEnd = dateIndex;
-                }
-
-                description = remaining.substring(0, descEnd).trim();
-                if (description.isEmpty()) {
-                    ui.showAddUsage();
-                    return null;
-                }
-
-                // Extract Category if /c is present
-                if (catIndex != -1) {
-                    int catEnd = (dateIndex > catIndex) ? dateIndex : remaining.length();
-                    category = remaining.substring(catIndex + 3, catEnd).trim();
-                }
-
-                // Extract Date if /d is present
-                if (dateIndex != -1) {
-                    int dateEnd = (catIndex > dateIndex) ? catIndex : remaining.length();
-                    String dateString = remaining.substring(dateIndex + 3, dateEnd).trim();
-                    try {
-                        date = LocalDate.parse(dateString); // Strictly expects YYYY-MM-DD
-                    } catch (java.time.format.DateTimeParseException e) {
-                        System.out.println("Invalid date format! Please use YYYY-MM-DD (e.g., 2026-03-24).");
-                        return null;
-                    }
-                }
-
-                // 3. Pass the fully parsed variables to your updated Command!
-                return new AddCommand(ui, description, amount, category, date);
-
-            } catch (NumberFormatException e) {
-                ui.showInvalidAmount();
-                return null;
-            }
+        case "edit":
+            return parseEditCommand(arguments, ui);
 
         case "budget":
             if (arguments.isEmpty()) {
@@ -141,33 +97,252 @@ public class Parser {
                 return null;
             }
 
-        case "delete":
-            if (arguments.isEmpty()) {
-                ui.showDeleteUsage();
-                return null;
-            }
-
-            try {
-                int index = Integer.parseInt(arguments);
-                if (index <= 0) {
-                    ui.showInvalidIndex();
-                    return null;
-                }
-                return new DeleteCommand(ui, index);
-            } catch (NumberFormatException e) {
-                ui.showInvalidIndexFormat();
-                return null;
-            }
-
-        case "total":
-            if (!arguments.isEmpty()) {
-                ui.showUnknownCommand();
-                return null;
-            }
-            return new TotalCommand(ui);
-
         default:
             ui.showUnknownCommand();
+            return null;
+        }
+    }
+
+    /**
+     * Parses the argument string for the add command and returns an AddCommand.
+     * Flags /c and /d are extracted first; the remaining text becomes the description.
+     *
+     * @param arguments The portion of user input after the add keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed AddCommand, or null if the input is invalid.
+     */
+    private static Command parseAddCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            ui.showAddUsage();
+            return null;
+        }
+
+        String[] firstSplit = arguments.split("\\s+", 2);
+        if (firstSplit.length < 2) {
+            ui.showAddUsage();
+            return null;
+        }
+
+        double amount;
+        try {
+            amount = Double.parseDouble(firstSplit[0]);
+            if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
+                ui.showInvalidAmount();
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            ui.showInvalidAmount();
+            return null;
+        }
+
+        String workingStr = firstSplit[1].trim();
+
+        LocalDate date = null;
+        if (workingStr.contains("/d")) {
+            int flagIdx = workingStr.indexOf("/d");
+            String after = workingStr.substring(flagIdx + 2).trim();
+            String[] tokens = after.split("\\s+", 2);
+
+            if (tokens[0].isEmpty()) {
+                ui.showAddUsage();
+                return null;
+            }
+            date = parseDate(tokens[0], ui);
+            if (date == null) {
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        String category = null;
+        if (workingStr.contains("/c")) {
+            int flagIdx = workingStr.indexOf("/c");
+            String after = workingStr.substring(flagIdx + 2).trim();
+            int nextSlash = after.indexOf('/');
+            String value = (nextSlash >= 0) ? after.substring(0, nextSlash).trim() : after.trim();
+
+            if (value.isEmpty()) {
+                ui.showAddUsage();
+                return null;
+            }
+            category = value;
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = (nextSlash >= 0) ? after.substring(nextSlash).trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        String description = workingStr.trim();
+        if (description.isEmpty()) {
+            ui.showAddUsage();
+            return null;
+        }
+
+        return new AddCommand(ui, description, amount, category, date);
+    }
+
+    /**
+     * Parses the argument string for the delete command and returns a DeleteCommand.
+     *
+     * @param arguments The portion of user input after the delete keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed DeleteCommand, or null if the input is invalid.
+     */
+    private static Command parseDeleteCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            ui.showDeleteUsage();
+            return null;
+        }
+        try {
+            int index = Integer.parseInt(arguments);
+            if (index <= 0) {
+                ui.showInvalidIndex();
+                return null;
+            }
+            return new DeleteCommand(ui, index);
+        } catch (NumberFormatException e) {
+            ui.showInvalidIndexFormat();
+            return null;
+        }
+    }
+
+    /**
+     * Parses the argument string for the edit command and returns an EditCommand.
+     * At least one of /amount, /desc, /category, or /date must be provided.
+     * Flags may appear in any order.
+     *
+     * @param arguments The portion of user input after the edit keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed EditCommand, or null if the input is invalid.
+     */
+    private static Command parseEditCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            ui.showEditUsage();
+            return null;
+        }
+
+        String[] indexSplit = arguments.split("\\s+", 2);
+        int editIndex;
+        try {
+            editIndex = Integer.parseInt(indexSplit[0]);
+            if (editIndex <= 0) {
+                ui.showInvalidIndex();
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            ui.showInvalidIndexFormat();
+            return null;
+        }
+
+        String flagSection = (indexSplit.length > 1) ? indexSplit[1].trim() : "";
+        if (flagSection.isEmpty()) {
+            ui.showEditUsage();
+            return null;
+        }
+
+        Double newAmount = null;
+        String newDescription = null;
+        String newCategory = null;
+        LocalDate newDate = null;
+
+        if (flagSection.contains("/amount")) {
+            int flagIdx = flagSection.indexOf("/amount");
+            String after = flagSection.substring(flagIdx + "/amount".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+
+            if (tokens[0].isEmpty()) {
+                ui.showEditUsage();
+                return null;
+            }
+            try {
+                double parsed = Double.parseDouble(tokens[0]);
+                if (Double.isNaN(parsed) || Double.isInfinite(parsed) || parsed < 0) {
+                    ui.showInvalidAmount();
+                    return null;
+                }
+                newAmount = parsed;
+            } catch (NumberFormatException e) {
+                ui.showInvalidAmount();
+                return null;
+            }
+            String before = flagSection.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            flagSection = (before + " " + remaining).trim();
+        }
+
+        if (flagSection.contains("/date")) {
+            int flagIdx = flagSection.indexOf("/date");
+            String after = flagSection.substring(flagIdx + "/date".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+
+            if (tokens[0].isEmpty()) {
+                ui.showEditUsage();
+                return null;
+            }
+            newDate = parseDate(tokens[0], ui);
+            if (newDate == null) {
+                return null;
+            }
+            String before = flagSection.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            flagSection = (before + " " + remaining).trim();
+        }
+
+        if (flagSection.contains("/desc")) {
+            int flagIdx = flagSection.indexOf("/desc");
+            String after = flagSection.substring(flagIdx + "/desc".length()).trim();
+            int nextSlash = after.indexOf('/');
+            String value = (nextSlash >= 0) ? after.substring(0, nextSlash).trim() : after.trim();
+
+            if (value.isEmpty()) {
+                ui.showEditUsage();
+                return null;
+            }
+            newDescription = value;
+            String before = flagSection.substring(0, flagIdx).trim();
+            String remaining = (nextSlash >= 0) ? after.substring(nextSlash).trim() : "";
+            flagSection = (before + " " + remaining).trim();
+        }
+
+        if (flagSection.contains("/category")) {
+            int flagIdx = flagSection.indexOf("/category");
+            String after = flagSection.substring(flagIdx + "/category".length()).trim();
+            int nextSlash = after.indexOf('/');
+            String value = (nextSlash >= 0) ? after.substring(0, nextSlash).trim() : after.trim();
+
+            if (value.isEmpty()) {
+                ui.showEditUsage();
+                return null;
+            }
+            newCategory = value;
+            String before = flagSection.substring(0, flagIdx).trim();
+            String remaining = (nextSlash >= 0) ? after.substring(nextSlash).trim() : "";
+            flagSection = (before + " " + remaining).trim();
+        }
+
+        if (newAmount == null && newDescription == null && newCategory == null && newDate == null) {
+            ui.showEditUsage();
+            return null;
+        }
+
+        return new EditCommand(ui, editIndex, newAmount, newDescription, newCategory, newDate);
+    }
+
+    /**
+     * Parses a date string strictly following the YYYY-MM-DD format.
+     * Impossible calendar dates are also rejected.
+     * Calls showInvalidDateFormat and returns null on failure.
+     *
+     * @param dateStr The raw date token to parse.
+     * @param ui      The Ui instance used to display the error message on failure.
+     * @return The parsed LocalDate, or null if parsing failed.
+     */
+    private static LocalDate parseDate(String dateStr, Ui ui) {
+        try {
+            return LocalDate.parse(dateStr, DATE_FORMAT);
+        } catch (DateTimeParseException e) {
+            ui.showInvalidDateFormat();
             return null;
         }
     }

@@ -38,8 +38,8 @@ class SpendSwiftTest {
     public void run_invalidCommands_showsValidationMessages() {
         String output = runWithInput("add\nadd abc Lunch\ndelete abc\nunknown\nexit\n", tempDir);
 
-        assertTrue(output.contains("Usage: add <amount> <description>"));
-        assertTrue(output.contains("Amount must be a valid number."));
+        assertTrue(output.contains("Usage: add <amount> [/c <category>] [/d <YYYY-MM-DD>] <description>"));
+        assertTrue(output.contains("Amount must be a valid non-negative number."));
         assertTrue(output.contains("Index must be a valid integer."));
         assertTrue(output.contains("Unknown command. Type 'help' to see available commands."));
     }

@@ -1,27 +1,24 @@
 package seedu.duke;
-
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 /**
  * Represents a single financial expense tracked by the user.
  * Contains the description, monetary amount, category, and date of the expense.
  */
 public class Expense {
+    public static final String DEFAULT_CATEGORY = "Others";
     private final String description;
     private final double amount;
     private final String category;
     private final LocalDate date;
-
     /**
-     * Constructs an Expense object with the specified details.
-     * If category is null/empty, defaults to "Others".
-     * If date is null, defaults to today's date.
+     * Constructs an Expense with all four fields supplied explicitly.
+     * A null or blank category defaults to "Others".
+     * A null date defaults to today's date.
      *
-     * @param description The details or name of the expense.
-     * @param amount The monetary cost of the expense.
-     * @param category The category of the expense.
-     * @param date The date the expense occurred.
+     * @param description Human-readable label for the expense.
+     * @param amount      Non-negative, finite monetary cost.
+     * @param category    Spending category. Null or blank defaults to "Others".
+     * @param date        Date of the expense. Null defaults to today.
      */
     public Expense(String description, double amount, String category, LocalDate date) {
         if (description == null || description.trim().isEmpty()) {
@@ -31,73 +28,64 @@ public class Expense {
             throw new IllegalArgumentException("Amount must be a non-negative finite value");
         }
         assert amount >= 0 : "Expense amount cannot be negative";
-
         this.description = description.trim();
         this.amount = amount;
-
-        // Default category logic
-        if (category == null || category.trim().isEmpty()) {
-            this.category = "Others";
-        } else {
-            this.category = category.trim();
-        }
-        assert this.category != null && !this.category.isEmpty() : "Category initialization failed";
-
-        // Default date logic
-        if (date == null) {
-            this.date = LocalDate.now();
-        } else {
-            this.date = date;
-        }
-        assert this.date != null : "Date initialization failed";
+        this.category = (category == null || category.trim().isEmpty())
+                ? DEFAULT_CATEGORY
+                : category.trim();
+        this.date = (date == null) ? LocalDate.now() : date;
     }
-
     /**
-     * Retrieves the description of the expense.
+     * Constructs an Expense using the default category "Others" and today's date.
+     *
+     * @param description Human-readable label for the expense.
+     * @param amount      Non-negative, finite monetary cost.
+     */
+    public Expense(String description, double amount) {
+        this(description, amount, DEFAULT_CATEGORY, LocalDate.now());
+    }
+    /**
+     * Returns the description of the expense.
      *
      * @return The description string.
      */
     public String getDescription() {
         return description;
     }
-
     /**
-     * Retrieves the monetary amount of the expense.
+     * Returns the monetary amount of the expense.
      *
      * @return The cost of the expense.
      */
     public double getAmount() {
         return amount;
     }
-
     /**
-     * Retrieves the category of the expense.
+     * Returns the spending category of the expense.
      *
-     * @return The category string.
+     * @return The category string. Never null; defaults to "Others".
      */
     public String getCategory() {
         return category;
     }
-
     /**
-     * Retrieves the date of the expense.
+     * Returns the date of the expense.
      *
-     * @return The LocalDate object representing when the expense occurred.
+     * @return The date of the expense. Never null; defaults to today.
      */
     public LocalDate getDate() {
         return date;
     }
-
     /**
-     * Returns a string representation of the expense, formatting the amount to two decimal places
-     * and the date to a readable "MMM dd yyyy" format.
+     * Returns a formatted string showing the description, amount, category, and date.
      *
-     * @return A formatted string showing the description, cost, category, and date.
+     * @return A string in the form: DESCRIPTION ($AMOUNT) [CATEGORY] [DATE].
      */
     @Override
     public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy");
-        return String.format("%s ($%.2f) [Cat: %s] [Date: %s]",
-                description, amount, category, date.format(formatter));
+        return description
+                + " ($" + String.format("%.2f", amount) + ")"
+                + " [" + category + "]"
+                + " [" + date + "]";
     }
 }

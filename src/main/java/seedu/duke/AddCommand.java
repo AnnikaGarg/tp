@@ -12,20 +12,21 @@ public class AddCommand extends Command {
     private final LocalDate date;
 
     /**
-     * Constructs an AddCommand with the specified Ui, description and amount.
+     * Constructs an AddCommand with all four expense fields.
+     * A null category defaults to "Others" and a null date defaults to today.
      *
      * @param ui          The Ui object used to display user-facing messages.
      * @param description Description of the expense.
      * @param amount      Monetary value of the expense.
-     * @param category    Category of the expense (can be null for default).
-     * @param date        Date the expense occurred (can be null for today).
+     * @param category    Spending category, or null to use the default.
+     * @param date        Date of the expense, or null to use today.
      */
     public AddCommand(Ui ui, String description, double amount, String category, LocalDate date) {
         super(ui);
         assert ui != null : "Ui cannot be null";
         assert description != null : "Description cannot be null";
         assert !description.isEmpty() : "Description cannot be empty";
-        assert amount > 0 : "Amount must be positive";
+        assert amount >= 0 : "Amount must be non-negative";
         this.description = description;
         this.amount = amount;
         this.category = category;
@@ -33,7 +34,7 @@ public class AddCommand extends Command {
     }
 
     /**
-     * Executes the add command by creating an Expense and adding it to the list.
+     * Executes the add command by creating an Expense and appending it to the list.
      *
      * @param expenseList The list where the expense will be stored.
      */
@@ -51,7 +52,7 @@ public class AddCommand extends Command {
     /**
      * Returns true because adding an expense updates persisted data.
      *
-     * @return true to indicate this command should be saved.
+     * @return true to indicate this command should trigger a save.
      */
     @Override
     public boolean shouldPersist() {

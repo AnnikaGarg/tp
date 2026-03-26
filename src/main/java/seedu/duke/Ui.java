@@ -21,7 +21,7 @@ public class Ui {
      * Displays confirmation after adding a new expense.
      *
      * @param expense The expense that was added.
-     * @param size The current total number of expenses.
+     * @param size    The current total number of expenses.
      */
     public void showAddExpense(Expense expense, int size) {
         System.out.println(LINE);
@@ -35,7 +35,7 @@ public class Ui {
      * Displays confirmation after deleting an expense.
      *
      * @param expense The expense that was removed.
-     * @param size The current total number of expenses.
+     * @param size    The current total number of expenses.
      */
     public void showDeleteExpense(Expense expense, int size) {
         System.out.println(LINE);
@@ -46,18 +46,35 @@ public class Ui {
     }
 
     /**
+     * Displays a before and after summary after editing an expense.
+     *
+     * @param before The original expense before the edit.
+     * @param after  The updated expense after the edit.
+     * @param index  The 1-based position that was edited.
+     */
+    public void showEditExpense(Expense before, Expense after, int index) {
+        System.out.println(LINE);
+        System.out.println("Got it. I've updated expense #" + index + ":");
+        System.out.println("  Before: " + before);
+        System.out.println("  After:  " + after);
+        System.out.println(LINE);
+    }
+
+    /**
      * Displays the help menu with all available commands.
      */
     public void showHelp() {
         System.out.println(LINE);
         System.out.println("Here are the available commands:");
-        System.out.println("  add AMOUNT DESCRIPTION  - Add a new expense");
-        System.out.println("  list                    - List all expenses");
-        System.out.println("  budget AMOUNT           - Set a spending budget");
-        System.out.println("  total                   - Calculate the total amount spent");
-        System.out.println("  delete INDEX            - Delete an expense by index");
-        System.out.println("  help                    - Show this help menu");
-        System.out.println("  exit                    - Exit the application");
+        System.out.println("  add AMOUNT [/c CATEGORY] [/d DATE] DESC                  - Add a new expense");
+        System.out.println("  list                                                     - List all expenses");
+        System.out.println("  total                                                    - Show total amount spent");
+        System.out.println("  budget AMOUNT                                            - Set a spending budget");
+        System.out.println("  delete INDEX                                             - Delete an expense by index");
+        System.out.println("  edit INDEX [/amount A] [/desc D] [/category C] [/date D] - Edit an existing expense");
+        System.out.println("  help                                                     - Show this help menu");
+        System.out.println("  exit                                                     - Exit the application");
+        System.out.println("Note: DATE must be in YYYY-MM-DD format (e.g. 2026-03-24).");
         System.out.println(LINE);
     }
 
@@ -103,7 +120,8 @@ public class Ui {
      */
     public void showAddUsage() {
         System.out.println(LINE);
-        System.out.println("Usage: add <amount> <description>");
+        System.out.println("Usage: add <amount> [/c <category>] [/d <YYYY-MM-DD>] <description>");
+        System.out.println("Example: add 5.50 /c Food /d 2026-03-24 Chicken Rice");
         System.out.println(LINE);
     }
 
@@ -117,16 +135,37 @@ public class Ui {
     }
 
     /**
-     * Displays an error message when the index format is invalid.
+     * Displays usage instructions for the edit command.
      */
-    public void showInvalidAmount() {
+    public void showEditUsage() {
         System.out.println(LINE);
-        System.out.println("Amount must be a valid number.");
+        System.out.println("Usage: edit <index> [/amount <amount>] [/desc <description>]"
+                + " [/category <category>] [/date <YYYY-MM-DD>]");
+        System.out.println("At least one flag must be provided.");
         System.out.println(LINE);
     }
 
     /**
-     * Displays an error message when the index format is invalid.
+     * Displays an error when the amount value is invalid.
+     */
+    public void showInvalidAmount() {
+        System.out.println(LINE);
+        System.out.println("Amount must be a valid non-negative number.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays an error when the date does not match YYYY-MM-DD or is not a real calendar date.
+     */
+    public void showInvalidDateFormat() {
+        System.out.println(LINE);
+        System.out.println("Date must be in YYYY-MM-DD format and be a valid calendar date.");
+        System.out.println("Example: /d 2026-03-24");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays an error when the index provided is not a valid integer.
      */
     public void showInvalidIndexFormat() {
         System.out.println(LINE);
@@ -135,7 +174,7 @@ public class Ui {
     }
 
     /**
-     * Displays an error message when the index is out of bounds.
+     * Displays an error when the index is out of bounds.
      */
     public void showInvalidIndex() {
         System.out.println(LINE);
