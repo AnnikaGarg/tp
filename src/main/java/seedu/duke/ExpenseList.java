@@ -1,5 +1,6 @@
 package seedu.duke;
 import java.util.ArrayList;
+import java.util.Comparator;
 /**
  * Represents the list of expenses tracked by the user.
  * Handles adding, deleting, retrieving, and replacing expenses.
@@ -111,5 +112,15 @@ public class ExpenseList {
      */
     public Expense deleteExpense(int index) throws IndexOutOfBoundsException {
         return expenses.remove(index);
+    }
+
+    /**
+     * Sorts the expense list in place using the given comparator.
+     *
+     * @param comparator The comparator to determine the order of expenses.
+     */
+    public void sortExpenses(Comparator<Expense> comparator) {
+        assert comparator != null : "Comparator must not be null";
+        expenses.sort(comparator);
     }
 }
