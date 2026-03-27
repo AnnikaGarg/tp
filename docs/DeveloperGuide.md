@@ -64,11 +64,13 @@ An alternative approach considered was performing budget checks inside `AddComma
 
 ### Target user profile
 
-{Describe the target user profile}
+* **Demographic:** University students (like those at NUS) and young professionals.
+* **Habits:** Spends a lot of time on their computer/terminal, prefers typing over mouse interactions, and wants a fast, no-nonsense way to log daily expenses (like meals and transport).
+* **Needs:** Needs a way to enforce a strict budget, categorize spending, and maintain data locally without relying on cloud services or slow mobile apps.
 
 ### Value proposition
 
-{Describe the value proposition: what problem does it solve?}
+SpendSwift solves the problem of friction in financial tracking. Most budgeting apps require navigating multiple menus and screens just to log a $5 coffee. SpendSwift allows power users to log, edit, and review their finances instantly using simple Command Line Interface (CLI) commands, keeping their hands on the keyboard and their focus unbroken.
 
 ## User Stories
 
@@ -83,12 +85,43 @@ An alternative approach considered was performing budget checks inside `AddComma
 
 ## Non-Functional Requirements
 
-{Give non-functional requirements}
+1. **Performance:** The system should respond to any user command within 2 seconds.
+2. **Portability:** The application must work seamlessly across Windows, macOS, and Linux environments, provided Java 11 or higher is installed.
+3. **Data Integrity:** The application must safely persist data to a local text file (`data/expenses.txt`) and be able to recover or skip corrupted lines without crashing.
+4. **Usability:** A user with average typing speed should be able to log a new expense faster than using a GUI-based mobile application.
 
 ## Glossary
 
-* *glossary item* - Definition
+* **CLI (Command Line Interface)** - A text-based user interface used to interact with the application by typing commands.
+* **Architecture** - The overall structural design of the software, determining how different components (like Parser, Storage, and Commands) interact.
+* **Persisted Data** - Information that is saved to the user's hard drive (in `expenses.txt`) so it is not lost when the application closes.
 
 ## Instructions for manual testing
 
-{Give instructions on how to do a manual product testing e.g., how to load sample data to be used for testing}
+Given below are instructions to test the app manually.
+
+### Launch and Shutdown
+1. **Initial launch:** Download the latest `.jar` file and copy it into an empty folder.
+2. Open your terminal, navigate to the folder, and run `java -jar SpendSwift.jar`.
+   * *Expected:* The welcome message appears, and a `data` folder is created in the same directory.
+3. **Shutdown:** Type `exit` and press Enter.
+   * *Expected:* The farewell message is shown and the application terminates.
+
+### Testing the Add Command (v2.0 Features)
+1. **Test adding with all parameters:**
+   * Run: `add 5.50 Chicken Rice /c food /d 2026-03-24`
+   * *Expected:* The expense is added. Typing `list` should show the expense with `[Cat: food]` and `[Date: Mar 24 2026]`.
+2. **Test default parameters:**
+   * Run: `add 2.00 Bus`
+   * *Expected:* The expense is added. Typing `list` should show it defaults to `[Cat: Others]` and today's date.
+3. **Test invalid date format:**
+   * Run: `add 10.00 Movie /d 24-03-2026`
+   * *Expected:* An error message prompts the user to use the `YYYY-MM-DD` format. The expense is *not* added.
+
+### Testing the Budget Feature
+1. **Setting a budget:**
+   * Run: `budget 50`
+   * *Expected:* A confirmation message states the budget is set to $50.00.
+2. **Exceeding the budget:**
+   * Run: `add 60.00 Textbook`
+   * *Expected:* The expense is added, but the UI triggers a "Budget Exceeded" warning message.
