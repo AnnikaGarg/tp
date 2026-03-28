@@ -60,6 +60,112 @@ The budget is persisted in `Storage` as a special line and reloaded when the app
 This design keeps business logic within `ExpenseList`, ensuring separation of concerns between data handling and command execution.
 An alternative approach considered was performing budget checks inside `AddCommand`, but this was avoided to maintain cleaner object-oriented design.
 
+---
+
+### Sort Feature
+
+The sort feature allows users to reorder their expense list either **alphabetically by category** or **chronologically by date** using the command `sort category` or `sort date`.
+
+**How it works:**
+
+The user types `sort` followed by exactly one criterion — `category` or `date`. Any other argument causes the parser to show a usage hint and return `null` without creating a command.
+
+**Implementation:**
+
+Below is the sequence of interactions when the user enters `sort category`:
+
+```
+@startuml
+actor User
+participant "Parser" as P
+participant "SortCommand" as SC
+participant "ExpenseList" as EL
+participant "Ui" as UI
+
+User -> P : parse("sort category", ui)
+P -> P : commandWord = "sort"
+P -> P : arguments = "category"
+P -> SC : new SortCommand(ui, "category")
+SC --> P : sortCommand
+P --> User : sortCommand
+
+User -> SC : execute(expenseList)
+SC -> EL : sortExpenses(BY_CATEGORY)
+EL -> EL : expenses.sort(comparator)
+EL --> SC : (sorted in place)
+SC -> UI : showSorted(expenseList, "category")
+UI --> SC : (list printed)
+SC --> User : (done)
+@enduml
+```
+
+`SortCommand` delegates the actual reordering to `ExpenseList.sortExpenses(Comparator)`, which calls `ArrayList.sort()` in place. Two static `Comparator<Expense>` constants are pre-defined in `SortCommand`:
+
+- `BY_CATEGORY` — uses `String.CASE_INSENSITIVE_ORDER` on `Expense.getCategory()`.
+- `BY_DATE` — uses the natural order of `LocalDate` via `Expense.getDate()`.
+
+Because the sort modifies the list order that is persisted to file, `SortCommand.shouldPersist()` returns `true`, triggering a save after execution.
+
+**Design Considerations:**
+
+- **Why sort in place?** Mutating the list directly ensures that the sorted order is reflected in subsequent `list` commands and is saved to disk without extra copying.
+- **Why static Comparators?** Declaring them as `public static final` fields on `SortCommand` makes them easily reusable and testable in isolation, without coupling the comparator logic to any single instance.
+- **Alternative considered:** Returning a new sorted list and replacing the existing one. This was rejected because it would require `ExpenseList` to expose a method for replacing all its contents, adding unnecessary surface area to the API.
+
+---
+
+### Statistics Feature
+
+The statistics feature provides a per-category breakdown of total spending using the `stats` command.
+
+**How it works:**
+
+The user types `stats` with no arguments. Trailing text is not allowed; if any arguments are detected, the parser shows an unknown-command message and returns `null`.
+
+**Implementation:**
+
+Below is the sequence of interactions when the user enters `stats`:
+
+```
+@startuml
+actor User
+participant "Parser" as P
+participant "StatisticsCommand" as STC
+participant "ExpenseList" as EL
+participant "Ui" as UI
+
+User -> P : parse("stats", ui)
+P -> P : commandWord = "stats"
+P -> P : arguments = "" (empty)
+P -> STC : new StatisticsCommand(ui)
+STC --> P : statsCommand
+P --> User : statsCommand
+
+User -> STC : execute(expenseList)
+STC -> STC : totals = new LinkedHashMap<>()
+loop for each expense in expenseList
+    STC -> EL : getExpense(i)
+    EL --> STC : expense
+    STC -> STC : totals.merge(category, amount)
+end
+STC -> UI : showStatistics(totals, count)
+UI --> STC : (stats printed)
+STC --> User : (done)
+@enduml
+```
+
+`StatisticsCommand.execute()` iterates over every expense in the list and accumulates per-category totals into a `LinkedHashMap<String, Double>`. Using a `LinkedHashMap` preserves the **insertion order**, so categories are printed in the order they first appear in the list — giving the output a predictable, intuitive feel.
+
+The final map and expense count are then passed to `Ui.showStatistics()`, which formats each category-total pair as `CategoryName: $X.XX`.
+
+Because `stats` is a read-only query, `StatisticsCommand.shouldPersist()` returns `false` — no file write is triggered.
+
+**Design Considerations:**
+
+- **Why `LinkedHashMap` instead of `HashMap`?** A plain `HashMap` has non-deterministic iteration order, which would cause the printed output to vary between runs. `LinkedHashMap` maintains insertion order at negligible extra cost.
+- **Why `TreeMap` was not used?** `TreeMap` would sort categories alphabetically, which is a different concern from counting. Keeping the order user-defined (insertion order) is more intuitive for the `stats` command.
+- **Alternative considered:** Computing statistics inside `Ui` itself. This was rejected because it would embed business logic in the presentation layer, violating the separation-of-concerns principle.
+
 ## Product scope
 
 ### Target user profile
