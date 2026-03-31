@@ -1,17 +1,59 @@
 package seedu.duke;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+
 /**
  * Represents the list of expenses tracked by the user.
  * Handles adding, deleting, retrieving, and replacing expenses.
  */
 public class ExpenseList {
+    private java.util.ArrayList<String> categories;
     private final ArrayList<Expense> expenses;
     private double budget;
     public ExpenseList() {
         this.expenses = new ArrayList<>();
         this.budget = -1;
+        this.categories = new ArrayList<>(Arrays.asList(
+                "Food", "Transport", "Shopping", "Entertainment", "Health", "Others"
+        ));
         assert this.expenses != null : "Expenses list should be initialised in constructor";
+    }
+
+    /**
+     * Returns the master list of available categories.
+     * * @return ArrayList of category strings.
+     */
+    public ArrayList<String> getCategoryList() {
+        return categories;
+    }
+
+    /**
+     * Retrieves a specific category from the master list by index.
+     * * @param index The index of the category.
+     * @return The category string.
+     */
+    public String getCategory(int index) {
+        return categories.get(index);
+    }
+
+    /**
+     * Formats and adds a new custom category to the list just above "Others".
+     * * @param newCategory The raw string typed by the user.
+     */
+    public void addCategory(String newCategory) {
+        if (newCategory == null || newCategory.trim().isEmpty()) {
+            return;
+        }
+
+        // Format it to Title Case so it looks clean in the list
+        String trimmed = newCategory.trim();
+        String formatted = trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1).toLowerCase();
+
+        // If it doesn't exist yet, insert it right before "Others"
+        if (!categories.contains(formatted)) {
+            categories.add(categories.size() - 1, formatted);
+        }
     }
     /**
      * Adds a new expense to the end of the list.
@@ -24,6 +66,7 @@ public class ExpenseList {
         }
         assert expense != null : "Expense should be validated before adding";
         expenses.add(expense);
+        addCategory(expense.getCategory());
         assert expenses.get(expenses.size() - 1) == expense : "Expense should be at end of list after add";
     }
     /**

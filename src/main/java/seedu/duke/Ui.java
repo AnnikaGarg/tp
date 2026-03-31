@@ -369,5 +369,21 @@ public class Ui {
         }
         System.out.println(LINE);
     }
+
+    // Creates a Scanner to read the user's interactive response
+    private final java.util.Scanner in = new java.util.Scanner(System.in);
+
+    public String getUserInput() {
+        return in.nextLine().trim();
+    }
+
+    public void showCategoryPrompt(java.util.ArrayList<String> categories) {
+        System.out.println(LINE);
+        System.out.println("You didn't specify a category! Choose one from the list:");
+        for (int i = 0; i < categories.size(); i++) {
+            System.out.println("  " + (i + 1) + ". " + categories.get(i));
+        }
+        System.out.print("Enter a number, or type a new category name: ");
+    }
 }
 

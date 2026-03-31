@@ -57,7 +57,6 @@ public class SpendSwift {
      * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
-        assert false : "dummy assertion to verify assertions are enabled";
         new SpendSwift().run();
     }
 }

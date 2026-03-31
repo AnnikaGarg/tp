@@ -41,7 +41,34 @@ public class AddCommand extends Command {
     @Override
     public void execute(ExpenseList expenseList) {
         assert expenseList != null : "ExpenseList cannot be null";
-        Expense expense = new Expense(description, amount, category, date);
+
+        String finalCategory = this.category;
+
+        if (finalCategory == null) {
+            ui.showCategoryPrompt(expenseList.getCategoryList());
+            String response = ui.getUserInput();
+
+            if (response.isEmpty()) {
+                finalCategory = "Others"; // Failsafe for empty enters
+            } else {
+                try {
+                    // Check if the user typed a number corresponding to the list
+                    int index = Integer.parseInt(response);
+                    if (index > 0 && index <= expenseList.getCategoryList().size()) {
+                        finalCategory = expenseList.getCategory(index - 1);
+                    } else {
+                        System.out.println("Invalid number! Defaulting to 'Others'.");
+                        finalCategory = "Others";
+                    }
+                } catch (NumberFormatException e) {
+                    // It's NOT a number, which means they typed a brand new category!
+                    finalCategory = response;
+                    expenseList.addCategory(finalCategory); // Save it to the master list
+                }
+            }
+        }
+
+        Expense expense = new Expense(description, amount, finalCategory, date);
         expenseList.addExpense(expense);
         ui.showAddExpense(expense, expenseList.getSize());
         if (expenseList.isOverBudget()) {
