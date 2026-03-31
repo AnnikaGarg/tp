@@ -31,9 +31,12 @@ public class Expense {
         this.description = description.trim();
         assert !this.description.isEmpty() : "Description should not be empty after trimming";
         this.amount = amount;
-        this.category = (category == null || category.trim().isEmpty())
-                ? DEFAULT_CATEGORY
-                : category.trim();
+        if (category == null || category.trim().isEmpty()) {
+            this.category = DEFAULT_CATEGORY;
+        } else {
+            String trimmedCat = category.trim();
+            this.category = trimmedCat.substring(0, 1).toUpperCase() + trimmedCat.substring(1).toLowerCase();
+        }
         assert this.category != null && !this.category.isEmpty() : "Category should not be empty after assignment";
         this.date = (date == null) ? LocalDate.now() : date;
         assert this.date != null : "Date should not be null after assignment";

@@ -60,4 +60,16 @@ public class ExpenseTest {
     public void constructor_emptyDescription_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new Expense("   ", 2.00, null, null));
     }
+
+    @Test
+    public void constructor_allLowerCaseCategory_formatsToTitleCase() {
+        Expense expense = new Expense("Chicken Rice", 5.50, "food", null);
+        assertEquals("Food", expense.getCategory());
+    }
+
+    @Test
+    public void constructor_mixedCaseCategory_formatsToTitleCase() {
+        Expense expense = new Expense("Bus", 2.00, "tRaNsPoRt", null);
+        assertEquals("Transport", expense.getCategory());
+    }
 }
