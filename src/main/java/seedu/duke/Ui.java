@@ -77,7 +77,8 @@ public class Ui {
         System.out.println("  delete INDEX                              - Delete an expense by index");
         System.out.println("  edit INDEX [/a AMOUNT] [/de DESC]         - Edit an existing expense");
         System.out.println("             [/c CATEGORY] [/da DATE]");
-        System.out.println("  find KEYWORD [/c CATEGORY]                - Find expenses by keyword/category");
+        System.out.println("  find KEYWORD [/c CAT] [/dmin DATE]        - Find/filter expenses");
+        System.out.println("       [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
         System.out.println("  sort category|date                        - Sort expenses");
         System.out.println("  stats                                     - Spending breakdown by category");
         System.out.println("  lend AMOUNT BORROWER [/da DATE]           - Record money lent to someone");
@@ -339,10 +340,13 @@ public class Ui {
      */
     public void showFindUsage() {
         System.out.println(LINE);
-        System.out.println("Usage: find KEYWORD [/c CATEGORY]");
-        System.out.println("  find lunch           - search by keyword");
-        System.out.println("  find /c Food         - list all in category");
-        System.out.println("  find lunch /c Food   - keyword within category");
+        System.out.println("Usage: find KEYWORD [/c CATEGORY] [/dmin DATE]"
+                + " [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
+        System.out.println("  find lunch                    - search by keyword");
+        System.out.println("  find /c Food                  - list all in category");
+        System.out.println("  find /dmin 2026-01-01          - from date onwards");
+        System.out.println("  find /amin 5 /amax 20          - amount between 5 and 20");
+        System.out.println("  find /c Food /sort desc        - Food expenses, highest first");
         System.out.println(LINE);
     }
 
