@@ -119,4 +119,68 @@ public class ExpenseListTest {
 
         assertTrue(expenseList.isOverBudget());
     }
+
+    @Test
+    public void setExpense_nullExpense_throwsIllegalArgumentException() {
+        ExpenseList expenseList = new ExpenseList();
+        expenseList.addExpense(new Expense("Lunch", 5.50));
+        assertThrows(IllegalArgumentException.class, () -> expenseList.setExpense(0, null));
+    }
+
+    @Test
+    public void setExpense_validExpense_replacesCorrectly() {
+        ExpenseList expenseList = new ExpenseList();
+        expenseList.addExpense(new Expense("Lunch", 5.50));
+        Expense newExpense = new Expense("Dinner", 10.00);
+
+        expenseList.setExpense(0, newExpense);
+
+        assertEquals("Dinner", expenseList.getExpense(0).getDescription());
+        assertEquals(10.00, expenseList.getExpense(0).getAmount());
+    }
+
+    @Test
+    public void deleteExpense_validIndex_removesExpense() {
+        ExpenseList expenseList = new ExpenseList();
+        Expense testExpense = new Expense("Lunch", 5.50);
+        expenseList.addExpense(testExpense);
+
+        Expense deleted = expenseList.deleteExpense(0);
+
+        assertEquals(0, expenseList.getSize());
+        assertEquals(testExpense, deleted);
+    }
+
+    @Test
+    public void addCategory_newCategory_addedSuccessfully() {
+        ExpenseList list = new ExpenseList();
+        int initialSize = list.getCategoryList().size();
+
+        list.addCategory("Subscriptions");
+
+        assertEquals(initialSize + 1, list.getCategoryList().size());
+        // Verify it was added right before "Others"
+        assertEquals("Subscriptions", list.getCategory(list.getCategoryList().size() - 2));
+    }
+
+    @Test
+    public void addCategory_duplicateCategory_doesNotDuplicate() {
+        ExpenseList list = new ExpenseList();
+        int initialSize = list.getCategoryList().size();
+
+        // "Food" is already a default category. Adding it again shouldn't change the size.
+        list.addCategory("fOoD");
+        assertEquals(initialSize, list.getCategoryList().size());
+    }
+
+    @Test
+    public void addCategory_nullOrEmptyCategory_isIgnored() {
+        ExpenseList list = new ExpenseList();
+        int initialSize = list.getCategoryList().size();
+
+        list.addCategory(null);
+        list.addCategory("   ");
+
+        assertEquals(initialSize, list.getCategoryList().size());
+    }
 }

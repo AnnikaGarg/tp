@@ -72,4 +72,23 @@ public class ExpenseTest {
         Expense expense = new Expense("Bus", 2.00, "tRaNsPoRt", null);
         assertEquals("Transport", expense.getCategory());
     }
+
+    @Test
+    public void constructor_nullDescription_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Expense(null, 5.00, "Food", null));
+    }
+
+    @Test
+    public void constructor_infiniteAmount_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new Expense("Lunch", Double.POSITIVE_INFINITY, null, null));
+    }
+
+    @Test
+    public void constructor_emptyCategoryString_defaultsToOthers() {
+        // Tests the branch where category != null, but it IS completely empty/spaces
+        Expense expense = new Expense("Coffee", 5.00, "   ", null);
+        assertEquals("Others", expense.getCategory());
+    }
+
+
 }
