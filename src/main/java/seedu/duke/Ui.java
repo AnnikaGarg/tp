@@ -161,6 +161,16 @@ public class Ui {
     }
 
     /**
+     * Displays an error when the user attempts to add a $0.00 expense.
+     */
+    public void showZeroAmountWarning() {
+        System.out.println(LINE);
+        System.out.println("Oops! Expense amounts must be greater than $0.00.");
+        System.out.println("If you didn't spend any money, there is no need to track it!");
+        System.out.println(LINE);
+    }
+
+    /**
      * Displays an error when the date does not match YYYY-MM-DD or is not a real calendar date.
      */
     public void showInvalidDateFormat() {

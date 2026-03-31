@@ -147,6 +147,12 @@ public class Parser {
         double amount;
         try {
             amount = Double.parseDouble(firstSplit[0]);
+
+            if (amount == 0) {
+                ui.showZeroAmountWarning();
+                return null;
+            }
+
             if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
                 ui.showInvalidAmount();
                 return null;
