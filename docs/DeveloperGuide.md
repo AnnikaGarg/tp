@@ -6,8 +6,6 @@
 
 ## Design & implementation
 
-{Describe the design and implementation of the product. Use UML diagrams and short code snippets where applicable.}
-
 ### Delete Feature
 
 The delete feature allows users to remove an existing expense from their tracking list by providing its 1-based index (e.g., `delete 1`).
@@ -40,38 +38,60 @@ Because deletion permanently removes persisted data, `DeleteCommand.shouldPersis
 The edit feature allows users to modify one or more fields of an existing expense using the `edit` command.
 
 **How it works:**
-
 The user provides a 1-based index followed by one or more optional flags:
-- `/amount` to update the monetary value
-- `/desc` to update the description
+- `/a` to update the monetary value
+- `/de` to update the description
 - `/c` to update the category
-- `/d` to update the date (must follow `YYYY-MM-DD` format)
+- `/da` to update the date (must follow `YYYY-MM-DD` format)
 
 At least one flag must be supplied; omitted fields retain their existing values.
 
 **Implementation:**
-
-`Parser.parseEditCommand()` extracts the index and each flag from the input string sequentially.
-Each flag is located by its keyword, its value is extracted up to the next `/` or end of input, and then stripped from the working string before the next flag is processed.
-This allows flags to appear in any order without ambiguity.
+`Parser.parseEditCommand()` extracts the index and each flag from the input string sequentially. Each flag is located by its keyword using `indexOf()`, its value is extracted up to the next `/` or the end of the input, and then it is stripped from the working string before the next flag is processed. This substring manipulation algorithm allows flags to appear in any order without ambiguity.
 
 Once all fields are parsed, an `EditCommand` is constructed with nullable fields for each of the four attributes.
+
+Below is the sequence of interactions when the user enters a valid command like `edit 1 /a 15.0`:
+
+*Figure 2: Sequence Diagram detailing the Edit feature execution.*
+![Sequence Diagram for Edit Command](images/edit-logic-diagram.png)
+
 In `EditCommand.execute()`, the existing `Expense` at the given index is retrieved, each non-null field replaces the corresponding existing value, and a new `Expense` object is created and written back via `ExpenseList.setExpense()`.
 
 **Design considerations:**
+`Expense` objects are immutable (all fields are `final`), so editing produces a new `Expense` rather than mutating the existing one. An alternative considered was making `Expense` mutable with setter methods, but immutability was preferred to avoid unintended side effects across the codebase.
 
-`Expense` objects are immutable (all fields are `final`), so editing produces a new `Expense` rather than mutating the existing one.
-An alternative considered was making `Expense` mutable, but immutability was preferred to avoid unintended side effects across the codebase.
+### Category and Date Parsing
 
-### Category and Date Parsing (Add Command)
+Commands like `add` and `edit` support optional flags such as `/c` for category and `/da` for date.
 
-The `add` command supports two optional flags: `/c` for category and `/d` for date.
+`Parser` implements a robust stripping algorithm. For example, in `Parser.parseAddCommand()`, it first extracts the mandatory amount, then strips the `/da` and `/c` flags from the remaining input one at a time. The date token is parsed with `ResolverStyle.STRICT` to reject impossible calendar dates such as `2026-02-30`. Whatever text remains after the specified flags are removed becomes the description, which means the description does not need to appear in a fixed position relative to the flags.
 
-`Parser.parseAddCommand()` first extracts the mandatory amount, then strips `/d` and `/c` flags from the remaining input one at a time.
-The date token is parsed with `ResolverStyle.STRICT` to reject impossible calendar dates such as `2026-02-30`.
-Whatever text remains after both flags are removed becomes the description, which means the description does not need to appear in a fixed position relative to the flags.
+### Loan Tracking System
 
-If no category is supplied, `Expense` defaults to `"Others"`. If no date is supplied, it defaults to today's date via `LocalDate.now()`.
+The Loan Tracking System allows users to manage debts separately from their primary expenses.
+
+**Implementation:**
+The system is centered around the `Loan` class, which extends the `Expense` class to reuse validation logic but introduces a `borrowerName` and an `isRepaid` boolean flag.
+
+The ledger is managed by three specific commands:
+
+1. **LendCommand**: Instantiates a `Loan` object and adds it to the internal `ArrayList<Loan>` managed by `ExpenseList`.
+
+Below is the sequence of interactions when the user enters a valid command like `lend 20 Alice`:
+
+*Figure 3: Sequence Diagram detailing the Lend feature execution.*
+![Sequence Diagram for Lend Command](images/loan-logic-diagram.png)
+
+2. **LoansCommand**: Queries the `Ui` to display the current outstanding balance. It handles the `/all` flag to show both outstanding and settled debts.
+3. **RepayCommand**: Rather than using an absolute index of the entire loan array, `RepayCommand` fetches a filtered list via `ExpenseList.getOutstandingLoans()`. The user's 1-based index is mapped to this dynamic list, and the selected loan is marked as repaid.
+
+**Storage Integration:**
+To persist this parallel data structure, the `Storage` class was modified to support multiple data types in a single file. Loan entries are prefixed with the `LOAN |` marker (e.g., `LOAN | 20.0 | 2026-04-01 | Alice | false`). During `load()`, the `Storage` class identifies this prefix, parses the loan using `parseLoanLine()`, and routes it to `ExpenseList.addLoan()` rather than the standard expense list.
+
+**Design Consideration:**
+- **Separate Ledgers**: We chose to keep loans in a separate list rather than the main `ExpenseList` to prevent temporary debt from skewing the "Statistics" and "Budget" features, which are intended strictly for personal spending analysis.
+- **Dynamic Repayment Indexing**: By mapping the `repay INDEX` to the *outstanding* loans list rather than the full historical list, we vastly improved the UX, preventing the user from having to manually count past, settled debts.
 
 ### Interactive Category Selection
 
@@ -92,7 +112,7 @@ When `AddCommand#execute(ExpenseList)` is invoked, it first evaluates the `categ
 2. It passes this list to `Ui#showCategoryPrompt()`, which formats and prints a numbered list to the terminal.
 3. `AddCommand` then suspends execution by calling `Ui#getUserInput()`, waiting for the user to type their selection.
 
-*Figure 2: Sequence Diagram detailing the UI Interaction phase.*
+*Figure 4: Sequence Diagram detailing the UI Interaction phase.*
 ![Phase 1 Sequence Diagram](images/interactive-category-phase1.png)
 
 #### Phase 2: Dynamic Category Resolution
@@ -100,7 +120,7 @@ Once the user provides an input string, `AddCommand` must determine if the user 
 
 If the user types a new category name (e.g., "Snacks"), `AddCommand` delegates the formatting and storage to `ExpenseList`. The `ExpenseList#addCategory()` method formats the string to Title Case (e.g., "snacks" -> "Snacks") and dynamically inserts it into the master list just above the "Others" category. This ensures "Others" always remains safely at the bottom of the user's UI prompt.
 
-*Figure 3: Sequence Diagram detailing the parsing and dynamic storage of a new category.*
+*Figure 5: Sequence Diagram detailing the parsing and dynamic storage of a new category.*
 ![Phase 2 Sequence Diagram](images/interactive-category-phase2.png)
 
 #### Phase 3: Expense Finalization & Budget Checking
@@ -111,7 +131,7 @@ With the category definitively resolved (either extracted from the numbered list
 3. `Ui#showAddExpense()` is called to print the success confirmation.
 4. Finally, `AddCommand` queries `ExpenseList#isOverBudget()`. If the new expense pushes the total over the user's defined limit, it triggers a warning message via the `Ui`.
 
-*Figure 4: Sequence Diagram detailing the final object creation and budget validation.*
+*Figure 6: Sequence Diagram detailing the final object creation and budget validation.*
 ![Phase 3 Sequence Diagram](images/interactive-category-phase3.png)
 
 
@@ -155,7 +175,7 @@ The user types `sort` followed by exactly one criterion — `category` or `date`
 
 Below is the sequence of interactions when the user enters `sort category`:
 
-*Figure 5: Sequence Diagram detailing the Sort feature execution.*
+*Figure 7: Sequence Diagram detailing the Sort feature execution.*
 ![SortCommand Sequence Diagram](images/sort-uml.png)
 
 `SortCommand` delegates the actual reordering to `ExpenseList.sortExpenses(Comparator)`, which calls `java.util.Collections.sort(expenses, comparator)` in place. Two static `Comparator<Expense>` constants are pre-defined in `SortCommand`:
@@ -185,7 +205,7 @@ The user types `stats` with no arguments. Trailing text is not allowed; if any a
 
 Below is the sequence of interactions when the user enters `stats`:
 
-*Figure 6: Sequence Diagram detailing the Statistics feature execution.*
+*Figure 8: Sequence Diagram detailing the Statistics feature execution.*
 ![StatisticsCommand Sequence Diagram](images/statistics-uml.png)
 
 `StatisticsCommand.execute()` iterates over every expense in the list and accumulates per-category totals into a `LinkedHashMap<String, Double>`. Using a `LinkedHashMap` preserves the **insertion order**, so categories are printed in the order they first appear in the list — giving the output a predictable, intuitive feel.
@@ -249,13 +269,13 @@ Given below are instructions to test the app manually.
 
 ### Testing the Add Command (v2.0 Features)
 1. **Test adding with all parameters:**
-   * Run: `add 5.50 Chicken Rice /c food /d 2026-03-24`
+   * Run: `add 5.50 Chicken Rice /c food /da 2026-03-24`
    * *Expected:* The expense is added. Typing `list` should show the expense with `[Cat: food]` and `[Date: Mar 24 2026]`.
 2. **Test default parameters:**
    * Run: `add 2.00 Bus`
    * *Expected:* The expense is added. Typing `list` should show it defaults to `[Cat: Others]` and today's date.
 3. **Test invalid date format:**
-   * Run: `add 10.00 Movie /d 24-03-2026`
+   * Run: `add 10.00 Movie /da 24-03-2026`
    * *Expected:* An error message prompts the user to use the `YYYY-MM-DD` format. The expense is *not* added.
 
 ### Testing the Budget Feature
