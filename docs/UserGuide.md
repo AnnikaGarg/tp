@@ -10,7 +10,7 @@ Whether you are a university student tracking daily meals or managing a strict b
 
 ## Quick Start
 
-1. Ensure you have **Java 11** or above installed on your Computer.
+1. Ensure you have **Java 17** installed on your Computer.
 2. Download the latest `SpendSwift.jar` from our GitHub releases page.
 3. Copy the file to an empty folder where you want to store your data.
 4. Open a command terminal, navigate to the folder, and run the application using the `java -jar SpendSwift.jar` command.
@@ -54,10 +54,25 @@ Adds a new expense to your tracking list.
 * `add 2.00 Bus Fare` *(Triggers the interactive category prompt)*
 
 
+### Editing an expense: `edit`
+Edits an existing expense in your list. You only need to provide the flags for the fields you want to change, and SpendSwift handles the rest.
+
+**Format:** `edit INDEX [/a NEW_AMOUNT] [/de NEW_DESC] [/c NEW_CATEGORY] [/da YYYY-MM-DD]`
+
+**Example:**
+* `edit 1 /a 15.00 /c Fast Food`
+
+
 ### Listing expenses: `list`
 Shows a list of all your recorded expenses. By default, the list is maintained in chronological order with the newest expenses appearing first.
 
 **Format:** `list`
+
+
+### Calculating overall total: `total`
+Displays the absolute sum of all expenses currently in your list for a quick snapshot of your spending.
+
+**Format:** `total`
 
 
 ### Sorting expenses: `sort`
@@ -69,6 +84,30 @@ Sorts your recorded expenses. You can organize them alphabetically by category, 
 **Examples:**
 * `sort category`
 * `sort date`
+
+
+### Tracking money lent: `lend`
+Records money you have lent to someone else. These entries are kept in a separate loan ledger from your daily expenses so they do not skew your personal budget and statistics.
+
+**Format:** `lend AMOUNT BORROWER_NAME [/da DATE]`
+
+**Example:**
+* `lend 10.00 Bob /da 2026-03-30`
+
+
+### Recording a repayment: `repay`
+Updates your loan ledger when someone pays you back, marking the debt as settled. The index you provide corresponds to the list of *outstanding* loans.
+
+**Format:** `repay INDEX`
+
+**Example:**
+* `repay 1`
+
+
+### Viewing all loans: `loans`
+Displays a comprehensive list of all outstanding debts and money currently lent out. You can also view past settled debts using the `/all` flag.
+
+**Format:** `loans` OR `loans /all`
 
 
 ### Exiting the program: `exit`
@@ -93,6 +132,11 @@ Exits the program and ensures all data is safely saved to your hard drive.
 | Action | Format, Examples |
 |--------|------------------|
 | **Add** | `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]` <br> e.g., `add 5.50 Coffee /c Food` |
+| **Edit** | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00` |
 | **List** | `list` |
+| **Total**| `total` |
 | **Sort** | `sort category` or `sort date` |
+| **Lend** | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice` |
+| **Repay**| `repay INDEX` <br> e.g., `repay 1` |
+| **Loans**| `loans` OR `loans /all` |
 | **Exit** | `exit` |
