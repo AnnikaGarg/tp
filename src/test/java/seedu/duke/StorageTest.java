@@ -22,13 +22,15 @@ public class StorageTest {
         ExpenseList loadedList = new ExpenseList();
         storage.load(loadedList);
         assertEquals(2, loadedList.getSize());
-        assertEquals("Lunch", loadedList.getExpense(0).getDescription());
-        assertEquals(12.50, loadedList.getExpense(0).getAmount(), 0.0001);
-        assertEquals("Food", loadedList.getExpense(0).getCategory());
-        assertEquals(LocalDate.parse("2026-03-24"), loadedList.getExpense(0).getDate());
-        assertEquals("Transport", loadedList.getExpense(1).getDescription());
-        assertEquals(2.10, loadedList.getExpense(1).getAmount(), 0.0001);
-        assertEquals("Travel", loadedList.getExpense(1).getCategory());
+        assertEquals("Transport", loadedList.getExpense(0).getDescription());
+        assertEquals(2.10, loadedList.getExpense(0).getAmount(), 0.0001);
+        assertEquals("Travel", loadedList.getExpense(0).getCategory());
+        assertEquals(LocalDate.parse("2026-03-25"), loadedList.getExpense(0).getDate());
+
+        assertEquals("Lunch", loadedList.getExpense(1).getDescription());
+        assertEquals(12.50, loadedList.getExpense(1).getAmount(), 0.0001);
+        assertEquals("Food", loadedList.getExpense(1).getCategory());
+        assertEquals(LocalDate.parse("2026-03-24"), loadedList.getExpense(1).getDate());
     }
     @Test
     public void load_malformedLine_skipsMalformedData() throws IOException {

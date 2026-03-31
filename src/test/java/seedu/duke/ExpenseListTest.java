@@ -188,14 +188,14 @@ public class ExpenseListTest {
     // ── Sorted insertion (Task 1) ─────────────────────────────────────────────
 
     @Test
-    public void addExpense_olderDate_insertsAtFront() {
+    public void addExpense_olderDate_insertsAtBack() {
         ExpenseList list = new ExpenseList();
         list.addExpense(new Expense("Lunch",   5.50, "Food", LocalDate.of(2026, 3, 10)));
         list.addExpense(new Expense("Bus fare", 1.80, "Transport", LocalDate.of(2026, 3,  5)));
 
-        // Mar-05 is earlier → should be at index 0
-        assertEquals(LocalDate.of(2026, 3,  5), list.getExpense(0).getDate());
-        assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(1).getDate());
+        // Mar-10 is newer → should be at index 0, Mar-05 at index 1
+        assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(0).getDate());
+        assertEquals(LocalDate.of(2026, 3,  5), list.getExpense(1).getDate());
     }
 
     @Test
@@ -205,10 +205,10 @@ public class ExpenseListTest {
         list.addExpense(new Expense("Movie",  15.00, "Entertainment", LocalDate.of(2026, 3, 20)));
         list.addExpense(new Expense("Gym",    50.00, "Health",    LocalDate.of(2026, 3, 10)));
 
-        // Expected order: Mar-01, Mar-10, Mar-20
-        assertEquals(LocalDate.of(2026, 3,  1), list.getExpense(0).getDate());
+        // Expected order (newest first): Mar-20, Mar-10, Mar-01
+        assertEquals(LocalDate.of(2026, 3, 20), list.getExpense(0).getDate());
         assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(1).getDate());
-        assertEquals(LocalDate.of(2026, 3, 20), list.getExpense(2).getDate());
+        assertEquals(LocalDate.of(2026, 3,  1), list.getExpense(2).getDate());
     }
 
     @Test
@@ -221,8 +221,8 @@ public class ExpenseListTest {
 
         assertEquals(4, list.getSize());
         for (int i = 0; i < list.getSize() - 1; i++) {
-            assertFalse(list.getExpense(i).getDate().isAfter(list.getExpense(i + 1).getDate()),
-                    "List should be in ascending date order at index " + i);
+            assertFalse(list.getExpense(i).getDate().isBefore(list.getExpense(i + 1).getDate()),
+                    "List should be in descending date order at index " + i);
         }
     }
 }

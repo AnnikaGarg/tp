@@ -57,10 +57,10 @@ public class ExpenseList {
         }
     }
     /**
-     * Adds a new expense to the list in chronological order (earliest date first).
+     * Adds a new expense to the list in chronological order (newest date first).
      * Iterates through the existing expenses and inserts the new expense at the
-     * first position where its date is before the existing expense's date,
-     * keeping the list always sorted by date.
+     * first position where its date is after the existing expense's date,
+     * keeping the list always sorted by date descending.
      *
      * @param expense The expense to add.
      * @throws IllegalArgumentException If expense is null.
@@ -74,7 +74,7 @@ public class ExpenseList {
         LocalDate newDate = expense.getDate();
         int insertIndex = expenses.size(); // default: append at end
         for (int i = 0; i < expenses.size(); i++) {
-            if (newDate.isBefore(expenses.get(i).getDate())) {
+            if (newDate.isAfter(expenses.get(i).getDate())) {
                 insertIndex = i;
                 break;
             }

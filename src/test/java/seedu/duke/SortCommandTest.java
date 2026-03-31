@@ -45,14 +45,14 @@ public class SortCommandTest {
     // ── Sort by date ──────────────────────────────────────────────────────────
 
     @Test
-    public void execute_sortByDate_earliestDateFirst() {
+    public void execute_sortByDate_newestDateFirst() {
         ExpenseList list = buildList();
         new SortCommand(ui, "date").execute(list);
 
-        // 2026-03-05 < 2026-03-10 < 2026-03-15
-        assertEquals(LocalDate.of(2026, 3,  5), list.getExpense(0).getDate());
+        // 2026-03-15 > 2026-03-10 > 2026-03-05
+        assertEquals(LocalDate.of(2026, 3, 15), list.getExpense(0).getDate());
         assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(1).getDate());
-        assertEquals(LocalDate.of(2026, 3, 15), list.getExpense(2).getDate());
+        assertEquals(LocalDate.of(2026, 3,  5), list.getExpense(2).getDate());
     }
 
     @Test

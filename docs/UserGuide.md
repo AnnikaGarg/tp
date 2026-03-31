@@ -54,6 +54,23 @@ Adds a new expense to your tracking list.
 * `add 2.00 Bus Fare` *(Triggers the interactive category prompt)*
 
 
+### Listing expenses: `list`
+Shows a list of all your recorded expenses. By default, the list is maintained in chronological order with the newest expenses appearing first.
+
+**Format:** `list`
+
+
+### Sorting expenses: `sort`
+Sorts your recorded expenses. You can organize them alphabetically by category, or chronologically by date (newest first). 
+*Note: When sorting by category, expenses within the same category will automatically fall back to being sorted by date (newest first).*
+
+**Format:** `sort category` or `sort date`
+
+**Examples:**
+* `sort category`
+* `sort date`
+
+
 ### Exiting the program: `exit`
 Exits the program and ensures all data is safely saved to your hard drive.
 
@@ -76,4 +93,6 @@ Exits the program and ensures all data is safely saved to your hard drive.
 | Action | Format, Examples |
 |--------|------------------|
 | **Add** | `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]` <br> e.g., `add 5.50 Coffee /c Food` |
+| **List** | `list` |
+| **Sort** | `sort category` or `sort date` |
 | **Exit** | `exit` |
