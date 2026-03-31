@@ -1,4 +1,5 @@
 package seedu.duke;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,18 +57,31 @@ public class ExpenseList {
         }
     }
     /**
-     * Adds a new expense to the end of the list.
+     * Adds a new expense to the list in chronological order (earliest date first).
+     * Iterates through the existing expenses and inserts the new expense at the
+     * first position where its date is before the existing expense's date,
+     * keeping the list always sorted by date.
      *
      * @param expense The expense to add.
+     * @throws IllegalArgumentException If expense is null.
      */
     public void addExpense(Expense expense) {
         if (expense == null) {
             throw new IllegalArgumentException("Expense must not be null");
         }
         assert expense != null : "Expense should be validated before adding";
-        expenses.add(expense);
+
+        LocalDate newDate = expense.getDate();
+        int insertIndex = expenses.size(); // default: append at end
+        for (int i = 0; i < expenses.size(); i++) {
+            if (newDate.isBefore(expenses.get(i).getDate())) {
+                insertIndex = i;
+                break;
+            }
+        }
+        expenses.add(insertIndex, expense);
         addCategory(expense.getCategory());
-        assert expenses.get(expenses.size() - 1) == expense : "Expense should be at end of list after add";
+        assert expenses.contains(expense) : "Expense should be present in list after add";
     }
     /**
      * Returns the current number of expenses in the list.
@@ -164,7 +178,7 @@ public class ExpenseList {
      */
     public void sortExpenses(Comparator<Expense> comparator) {
         assert comparator != null : "Comparator must not be null";
-        expenses.sort(comparator);
+        java.util.Collections.sort(expenses, comparator);
     }
 }
 

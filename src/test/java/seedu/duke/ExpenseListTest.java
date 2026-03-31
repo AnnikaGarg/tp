@@ -1,6 +1,7 @@
 package seedu.duke;
 
 import org.junit.jupiter.api.Test;
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -182,5 +183,46 @@ public class ExpenseListTest {
         list.addCategory("   ");
 
         assertEquals(initialSize, list.getCategoryList().size());
+    }
+
+    // ── Sorted insertion (Task 1) ─────────────────────────────────────────────
+
+    @Test
+    public void addExpense_olderDate_insertsAtFront() {
+        ExpenseList list = new ExpenseList();
+        list.addExpense(new Expense("Lunch",   5.50, "Food", LocalDate.of(2026, 3, 10)));
+        list.addExpense(new Expense("Bus fare", 1.80, "Transport", LocalDate.of(2026, 3,  5)));
+
+        // Mar-05 is earlier → should be at index 0
+        assertEquals(LocalDate.of(2026, 3,  5), list.getExpense(0).getDate());
+        assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(1).getDate());
+    }
+
+    @Test
+    public void addExpense_middleDate_insertsInCorrectPosition() {
+        ExpenseList list = new ExpenseList();
+        list.addExpense(new Expense("Coffee", 3.00, "Food",      LocalDate.of(2026, 3,  1)));
+        list.addExpense(new Expense("Movie",  15.00, "Entertainment", LocalDate.of(2026, 3, 20)));
+        list.addExpense(new Expense("Gym",    50.00, "Health",    LocalDate.of(2026, 3, 10)));
+
+        // Expected order: Mar-01, Mar-10, Mar-20
+        assertEquals(LocalDate.of(2026, 3,  1), list.getExpense(0).getDate());
+        assertEquals(LocalDate.of(2026, 3, 10), list.getExpense(1).getDate());
+        assertEquals(LocalDate.of(2026, 3, 20), list.getExpense(2).getDate());
+    }
+
+    @Test
+    public void addExpense_multipleAdds_listAlwaysSortedByDate() {
+        ExpenseList list = new ExpenseList();
+        list.addExpense(new Expense("D", 4.00, "Others", LocalDate.of(2026, 4, 15)));
+        list.addExpense(new Expense("A", 1.00, "Others", LocalDate.of(2026, 1,  1)));
+        list.addExpense(new Expense("C", 3.00, "Others", LocalDate.of(2026, 3,  3)));
+        list.addExpense(new Expense("B", 2.00, "Others", LocalDate.of(2026, 2, 20)));
+
+        assertEquals(4, list.getSize());
+        for (int i = 0; i < list.getSize() - 1; i++) {
+            assertFalse(list.getExpense(i).getDate().isAfter(list.getExpense(i + 1).getDate()),
+                    "List should be in ascending date order at index " + i);
+        }
     }
 }

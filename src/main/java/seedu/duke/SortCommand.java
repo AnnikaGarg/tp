@@ -10,9 +10,10 @@ import java.util.Comparator;
  */
 public class SortCommand extends Command {
 
-    /** Comparator that sorts expenses alphabetically by category (case-insensitive). */
+    /** Comparator that sorts expenses alphabetically by category (case-insensitive) and then by date. */
     public static final Comparator<Expense> BY_CATEGORY =
-            Comparator.comparing(Expense::getCategory, String.CASE_INSENSITIVE_ORDER);
+            Comparator.comparing(Expense::getCategory, String.CASE_INSENSITIVE_ORDER)
+                      .thenComparing(Expense::getDate);
 
     /** Comparator that sorts expenses chronologically by date (earliest first). */
     public static final Comparator<Expense> BY_DATE =
