@@ -398,4 +398,21 @@ public class ParserTest {
     public void parse_repayCommandExtraTokens_returnsNull() {
         assertNull(Parser.parse("repay 1 extra", ui));
     }
+
+    @Test
+    public void parse_findCommandWithCategory_returnsFindCommand() {
+        Command command = Parser.parse("find /c Food", ui);
+        assertTrue(command instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandKeywordAndCategory_returnsFindCommand() {
+        Command command = Parser.parse("find coffee /c Food", ui);
+        assertTrue(command instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandEmptyCategoryValue_returnsNull() {
+        assertNull(Parser.parse("find /c", ui));
+    }
 }
