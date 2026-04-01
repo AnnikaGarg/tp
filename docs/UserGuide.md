@@ -75,6 +75,56 @@ Displays the absolute sum of all expenses currently in your list for a quick sna
 **Format:** `total`
 
 
+### Deleting an expense: `delete`
+Removes an expense from your list by its index number.
+
+**Format:** `delete INDEX`
+
+**Example:**
+* `delete 3` *(Removes the 3rd expense from your list)*
+
+
+### Setting a budget: `budget`
+Sets a spending limit or views the current budget. If you exceed your budget after adding an expense, SpendSwift will display a warning.
+
+**Format:** `budget AMOUNT` (to set) or `budget` (to view)
+
+**Examples:**
+* `budget 100` *(Sets your budget to $100.00)*
+* `budget` *(Displays your current budget, total spent, and remaining balance)*
+
+
+### Finding and filtering expenses: `find`
+Searches your expense list using a keyword and/or filters. All filters are optional and can be combined freely.
+
+**Format:** `find [KEYWORD] [/c CATEGORY] [/dmin DATE] [/dmax DATE] [/amin AMOUNT] [/amax AMOUNT] [/sort asc|desc]`
+
+* `KEYWORD` searches across both description and category (case-insensitive).
+* `/c CATEGORY` filters by exact category match.
+* `/dmin` and `/dmax` filter by date range (inclusive, YYYY-MM-DD format).
+* `/amin` and `/amax` filter by amount range (inclusive).
+* `/sort asc` or `/sort desc` sorts results by amount.
+
+**Examples:**
+* `find coffee` *(All expenses containing "coffee")*
+* `find /c Food` *(All expenses in the Food category)*
+* `find /dmin 2026-01-01 /dmax 2026-03-31` *(Q1 expenses)*
+* `find /amin 5 /amax 20 /sort asc` *(Expenses between $5-$20, cheapest first)*
+* `find lunch /c Food /sort desc` *("lunch" in Food, most expensive first)*
+
+
+### Viewing statistics: `stats`
+Displays a per-category breakdown of total spending.
+
+**Format:** `stats`
+
+
+### Viewing help: `help`
+Displays a summary of all available commands and their usage formats.
+
+**Format:** `help`
+
+
 ### Sorting expenses: `sort`
 Sorts your recorded expenses. You can organize them alphabetically by category, or chronologically by date (newest first). 
 *Note: When sorting by category, expenses within the same category will automatically fall back to being sorted by date (newest first).*
@@ -133,10 +183,15 @@ Exits the program and ensures all data is safely saved to your hard drive.
 |--------|------------------|
 | **Add** | `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]` <br> e.g., `add 5.50 Coffee /c Food` |
 | **Edit** | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00` |
+| **Delete**| `delete INDEX` <br> e.g., `delete 3` |
 | **List** | `list` |
+| **Find** | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
 | **Total**| `total` |
+| **Budget**| `budget [AMOUNT]` <br> e.g., `budget 100` or `budget` |
 | **Sort** | `sort category` or `sort date` |
+| **Stats**| `stats` |
 | **Lend** | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice` |
 | **Repay**| `repay INDEX` <br> e.g., `repay 1` |
 | **Loans**| `loans` OR `loans /all` |
+| **Help** | `help` |
 | **Exit** | `exit` |

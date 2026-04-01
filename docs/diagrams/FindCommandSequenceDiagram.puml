@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor white
+skinparam sequenceMessageAlign center
+
+actor User
+
+box "Logic" #LightBlue
+    participant ":Parser" as Parser
+    participant "f:FindCommand" as FindCommand
+end box
+
+box "Model (Data)" #LightPink
+    participant ":ExpenseList" as ExpenseList
+    participant ":Expense" as Expense
+end box
+
+box "UI" #LightGreen
+    participant ":Ui" as Ui
+end box
+
+User -> Parser : parse("find lunch /c Food", ui)
+activate Parser
+
+Parser -> Parser : parseFindCommand("lunch /c Food", ui)
+Parser -> Parser : extract /c flag -> categoryFilter = "Food"
+Parser -> Parser : keyword = "lunch"
+
+create FindCommand
+Parser -> FindCommand : new FindCommand(ui, "lunch", "Food", ...)
+activate FindCommand
+FindCommand --> Parser : f
+deactivate FindCommand
+
+Parser --> User : f
+deactivate Parser
+
+User -> FindCommand : execute(expenseList)
+activate FindCommand
+
+loop for each expense in list
+    FindCommand -> ExpenseList : getExpense(i)
+    activate ExpenseList
+    ExpenseList --> FindCommand : expense
+    deactivate ExpenseList
+
+    FindCommand -> FindCommand : matchesCategory(expense)
+    FindCommand -> FindCommand : matchesKeyword(expense)
+    FindCommand -> FindCommand : matchesDateRange(expense)
+    FindCommand -> FindCommand : matchesAmountRange(expense)
+end
+
+FindCommand -> Ui : showFindResults(matches, "lunch", "Food")
+activate Ui
+Ui --> User : (results printed)
+deactivate Ui
+
+deactivate FindCommand
+
+User -> User : (done)
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor white
+skinparam sequenceMessageAlign center
+
+actor User
+
+box "Logic" #LightBlue
+    participant ":Parser" as Parser
+    participant "h:HelpCommand" as HelpCommand
+end box
+
+box "Model (Data)" #LightPink
+    participant ":ExpenseList" as ExpenseList
+end box
+
+box "UI" #LightGreen
+    participant ":Ui" as Ui
+end box
+
+User -> Parser : parse("help", ui)
+activate Parser
+
+Parser -> Parser : commandWord = "help"
+Parser -> Parser : arguments is empty
+
+create HelpCommand
+Parser -> HelpCommand : new HelpCommand(ui)
+activate HelpCommand
+HelpCommand --> Parser : h
+deactivate HelpCommand
+
+Parser --> User : h
+deactivate Parser
+
+User -> HelpCommand : execute(expenseList)
+activate HelpCommand
+
+HelpCommand -> Ui : showHelp()
+activate Ui
+Ui --> User : (help menu printed)
+deactivate Ui
+
+deactivate HelpCommand
+
+User -> User : (done)
+
+@enduml
