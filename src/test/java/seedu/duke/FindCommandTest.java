@@ -111,4 +111,76 @@ public class FindCommandTest {
         System.setOut(original);
         assertTrue(out.toString().contains("Bus ride"), "Output should contain expense whose category matched");
     }
+
+    @Test
+    public void execute_categoryFilter_onlyMatchingCategory() {
+        ExpenseList expenseList = buildList();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+        new FindCommand(new Ui(), "", "Food").execute(expenseList);
+        System.setOut(original);
+
+        String output = out.toString();
+        assertTrue(output.contains("Coffee"), "Output should contain Food expense Coffee");
+        assertTrue(output.contains("Chicken Rice"), "Output should contain Food expense Chicken Rice");
+        assertFalse(output.contains("Bus ride"), "Output should not contain Transport expense");
+        assertFalse(output.contains("Movie ticket"), "Output should not contain Entertainment expense");
+    }
+
+    @Test
+    public void execute_categoryFilterCaseInsensitive_matchesCategory() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "", "food").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("Coffee"), "Case-insensitive category filter should match");
+    }
+
+    @Test
+    public void execute_categoryFilterNoMatch_showsNoResults() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "", "Utilities").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("No expenses found"), "Non-existent category should show no results");
+    }
+
+    @Test
+    public void execute_keywordWithCategoryFilter_filtersOnBoth() {
+        ExpenseList expenseList = buildList();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+        new FindCommand(new Ui(), "coffee", "Food").execute(expenseList);
+        System.setOut(original);
+
+        String output = out.toString();
+        assertTrue(output.contains("Coffee"), "Should find Coffee in Food category");
+        assertFalse(output.contains("Chicken Rice"), "Chicken Rice doesn't match keyword coffee");
+    }
+
+    @Test
+    public void execute_keywordWithWrongCategory_showsNoResults() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(out));
+
+        ExpenseList expenseList = buildList();
+        new FindCommand(new Ui(), "coffee", "Transport").execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("No expenses found"),
+                "Coffee exists but not in Transport category");
+    }
 }

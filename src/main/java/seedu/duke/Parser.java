@@ -82,11 +82,7 @@ public class Parser {
             return parseEditCommand(arguments, ui);
 
         case "find":
-            if (arguments.isEmpty()) {
-                ui.showFindUsage();
-                return null;
-            }
-            return new FindCommand(ui, arguments);
+            return parseFindCommand(arguments, ui);
 
         case "budget":
             if (arguments.isEmpty()) {
@@ -498,6 +494,48 @@ public class Parser {
         return new RepayCommand(ui, index);
     }
 
+
+    /**
+     * Parses the argument string for the find command and returns a FindCommand.
+     * Supports optional /c flag for category filtering.
+     * Valid forms: find KEYWORD, find /c CATEGORY, find KEYWORD /c CATEGORY.
+     *
+     * @param arguments The portion of user input after the find keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed FindCommand, or null if the input is invalid.
+     */
+    private static Command parseFindCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            ui.showFindUsage();
+            return null;
+        }
+
+        String keyword = arguments;
+        String categoryFilter = null;
+
+        if (keyword.contains("/c")) {
+            int flagIdx = keyword.indexOf("/c");
+            String after = keyword.substring(flagIdx + 2).trim();
+            int nextSlash = after.indexOf('/');
+            String value = (nextSlash >= 0) ? after.substring(0, nextSlash).trim() : after.trim();
+
+            if (value.isEmpty()) {
+                ui.showFindUsage();
+                return null;
+            }
+            categoryFilter = value;
+            String before = keyword.substring(0, flagIdx).trim();
+            String remaining = (nextSlash >= 0) ? after.substring(nextSlash).trim() : "";
+            keyword = (before + " " + remaining).trim();
+        }
+
+        if (keyword.isEmpty() && categoryFilter == null) {
+            ui.showFindUsage();
+            return null;
+        }
+
+        return new FindCommand(ui, keyword, categoryFilter);
+    }
 
     /**
      * Parses a date string strictly following the YYYY-MM-DD format.
