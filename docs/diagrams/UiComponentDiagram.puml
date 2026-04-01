@@ -1,0 +1,35 @@
+@startuml
+skinparam backgroundColor white
+skinparam classAttributeIconSize 0
+left to right direction
+
+class SpendSwift
+abstract class Command
+class AddCommand
+class BudgetCommand
+class Ui
+class Expense
+class Loan
+class ExpenseList
+
+AddCommand --|> Command
+BudgetCommand --|> Command
+
+SpendSwift --> Ui
+AddCommand --> Ui
+BudgetCommand --> Ui
+
+Ui ..> Expense
+Ui ..> Loan
+Ui ..> ExpenseList
+
+note right of Ui
+Handles console input/output only.
+
+Used for:
+- confirmations
+- usage messages
+- warnings
+- interactive prompts
+end note
+@enduml

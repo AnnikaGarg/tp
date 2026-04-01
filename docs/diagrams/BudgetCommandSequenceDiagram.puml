@@ -1,0 +1,25 @@
+@startuml
+skinparam backgroundColor white
+hide footbox
+
+actor User
+participant ":SpendSwift" as SpendSwift
+participant ":Parser" as Parser
+participant ":BudgetCommand" as BudgetCommand
+participant ":ExpenseList" as ExpenseList
+participant ":Ui" as Ui
+
+User -> SpendSwift : enter budget command
+SpendSwift -> Parser : parseBudgetCommand(input)
+Parser --> SpendSwift : BudgetCommand
+
+SpendSwift -> BudgetCommand : execute(expenseList)
+
+alt valid budget amount
+    BudgetCommand -> ExpenseList : setBudget(amount)
+    ExpenseList --> BudgetCommand
+    BudgetCommand -> Ui : showBudgetSet(amount)
+else invalid budget amount
+    BudgetCommand -> Ui : showInvalidBudget()
+end
+@enduml

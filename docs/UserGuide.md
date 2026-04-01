@@ -38,6 +38,18 @@ Before diving into the features, here are a few things to keep in mind regarding
 
 ---
 
+## Notes on User Interaction
+
+SpendSwift provides interactive feedback to guide users:
+
+- Clear confirmation messages are shown after each command (e.g., adding or deleting expenses)
+- Warning messages are displayed for invalid inputs or exceeded budgets
+- Some commands (such as `add`) may trigger interactive prompts to request additional input
+
+These interactions ensure that users receive immediate feedback and guidance while using the application.
+
+---
+
 ## Features
 
 ### Adding an expense: `add`
@@ -45,13 +57,18 @@ Adds a new expense to your tracking list.
 
 **Format:** `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]`
 
-* The `AMOUNT` must be a valid, positive number.
-* If the `/da` (date) flag is omitted, the expense defaults to today's date.
-* **Interactive Prompt:** If the `/c` (category) flag is omitted, the application will pause and display a numbered list of all your existing categories. You can type a number to select an existing category, or type a new word to create a brand-new category on the fly!
+* `AMOUNT` must be a valid number greater than 0.
+* If `/da` (date) is not provided, the expense will default to the current date.
+* If `/c` (category) is not provided, an interactive prompt will appear.
+
+**Interactive Prompt:**
+If no category is specified, SpendSwift will display a numbered list of available categories. You may:
+- Enter a number to select an existing category
+- Type a new category name to create one
 
 **Examples:**
 * `add 12.50 McDonald's Lunch /c Food /da 2026-03-24`
-* `add 2.00 Bus Fare` *(Triggers the interactive category prompt)*
+* `add 2.00 Bus Fare` *(triggers category prompt)*
 
 
 ### Editing an expense: `edit`
@@ -85,13 +102,27 @@ Removes an expense from your list by its index number.
 
 
 ### Setting a budget: `budget`
-Sets a spending limit or views the current budget. If you exceed your budget after adding an expense, SpendSwift will display a warning.
+Sets or views your spending budget.
 
-**Format:** `budget AMOUNT` (to set) or `budget` (to view)
+**Format:** `budget AMOUNT` (to set)  
+**Format:** `budget` (to view)
+
+* `AMOUNT` must be a number greater than 0.
+* Setting a budget overwrites any previously set budget.
+
+**Behavior:**
+- When a budget is set, SpendSwift tracks your total spending against it.
+- If your total spending exceeds the budget, a warning message will be displayed.
+
+**Viewing Budget:**
+When using `budget` without arguments, SpendSwift shows:
+- Current budget
+- Total spent
+- Remaining budget (or exceeded amount)
 
 **Examples:**
-* `budget 100` *(Sets your budget to $100.00)*
-* `budget` *(Displays your current budget, total spent, and remaining balance)*
+* `budget 100`
+* `budget`
 
 
 ### Finding and filtering expenses: `find`
