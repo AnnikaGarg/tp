@@ -77,7 +77,8 @@ public class Ui {
         System.out.println("  delete INDEX                              - Delete an expense by index");
         System.out.println("  edit INDEX [/a AMOUNT] [/de DESC]         - Edit an existing expense");
         System.out.println("             [/c CATEGORY] [/da DATE]");
-        System.out.println("  find KEYWORD                              - Find expenses by keyword");
+        System.out.println("  find KEYWORD [/c CAT] [/dmin DATE]        - Find/filter expenses");
+        System.out.println("       [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
         System.out.println("  sort category|date                        - Sort expenses");
         System.out.println("  stats                                     - Spending breakdown by category");
         System.out.println("  lend AMOUNT BORROWER [/da DATE]           - Record money lent to someone");
@@ -339,28 +340,54 @@ public class Ui {
      */
     public void showFindUsage() {
         System.out.println(LINE);
-        System.out.println("Usage: find KEYWORD");
+        System.out.println("Usage: find KEYWORD [/c CATEGORY] [/dmin DATE]"
+                + " [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
+        System.out.println("  find lunch                    - search by keyword");
+        System.out.println("  find /c Food                  - list all in category");
+        System.out.println("  find /dmin 2026-01-01          - from date onwards");
+        System.out.println("  find /amin 5 /amax 20          - amount between 5 and 20");
+        System.out.println("  find /c Food /sort desc        - Food expenses, highest first");
         System.out.println(LINE);
     }
 
     /**
-     * Displays the list of expenses that match the search keyword.
+     * Displays the list of expenses that match the search keyword and/or category filter.
      *
-     * @param results The list of matching expenses.
-     * @param keyword The keyword that was searched.
+     * @param results        The list of matching expenses.
+     * @param keyword        The keyword that was searched (may be empty).
+     * @param categoryFilter The category filter applied, or null if none.
      */
-    public void showFindResults(java.util.ArrayList<Expense> results, String keyword) {
+    public void showFindResults(java.util.ArrayList<Expense> results,
+                                String keyword, String categoryFilter) {
         System.out.println(LINE);
+        String searchDescription = buildSearchDescription(keyword, categoryFilter);
         if (results.isEmpty()) {
-            System.out.println("No expenses found matching: " + keyword);
+            System.out.println("No expenses found matching: " + searchDescription);
             System.out.println(LINE);
             return;
         }
-        System.out.println("Here are the matching expenses for \"" + keyword + "\":");
+        System.out.println("Here are the matching expenses for " + searchDescription + ":");
         for (int i = 0; i < results.size(); i++) {
             System.out.println((i + 1) + ". " + results.get(i));
         }
         System.out.println(LINE);
+    }
+
+    /**
+     * Builds a human-readable description of the search criteria.
+     *
+     * @param keyword        The keyword searched for (may be empty).
+     * @param categoryFilter The category filter applied, or null if none.
+     * @return A formatted string describing the search.
+     */
+    private String buildSearchDescription(String keyword, String categoryFilter) {
+        if (!keyword.isEmpty() && categoryFilter != null) {
+            return "\"" + keyword + "\" in category [" + categoryFilter + "]";
+        }
+        if (categoryFilter != null) {
+            return "category [" + categoryFilter + "]";
+        }
+        return "\"" + keyword + "\"";
     }
     /**
      * Displays the expense list after it has been sorted.

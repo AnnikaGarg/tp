@@ -147,6 +147,102 @@ With the category definitively resolved (either extracted from the numbered list
    * *Pros:* Immediate execution; keeps the `AddCommand` logic simple.
    * *Cons:* Leads to messy, inaccurate financial tracking. Users end up with the majority of their expenses dumped into a useless "Others" category, completely defeating the purpose of a budgeting application. The interactive prompt forces accurate categorization without making the user retype their description and amount.
 
+### Find / Filter Feature
+
+The find feature allows users to search and filter their expense list using a keyword and/or a combination of optional flags.
+
+**How it works:**
+The user types `find` followed by an optional keyword and any combination of the following flags:
+- `/c CATEGORY` — filter by exact category match (case-insensitive)
+- `/dmin DATE` — include only expenses on or after this date
+- `/dmax DATE` — include only expenses on or before this date
+- `/amin AMOUNT` — include only expenses at or above this amount
+- `/amax AMOUNT` — include only expenses at or below this amount
+- `/sort asc|desc` — sort results by amount (ascending or descending)
+
+All filters are composable: `find lunch /c Food /amin 5 /sort asc` finds expenses containing "lunch" in the Food category costing at least $5, sorted cheapest-first.
+
+**Implementation:**
+`Parser.parseFindCommand()` strips each recognised flag from the input string one at a time, using the same `indexOf()`-based algorithm as `parseAddCommand()`. The remaining text after all flags have been extracted becomes the keyword. If neither a keyword nor any filter flag is present, usage help is shown and `null` is returned.
+
+A `FindCommand` is constructed with all seven parameters (keyword, category, dateMin, dateMax, amountMin, amountMax, sortOrder). During execution, each expense is tested against four private predicate methods — `matchesCategory()`, `matchesKeyword()`, `matchesDateRange()`, and `matchesAmountRange()` — each of which returns `true` when its corresponding filter is `null` (i.e., not set). This design means all filters are independently optional and composable without any conditional branching in the main loop.
+
+Below is the sequence of interactions when the user enters `find lunch /c Food`:
+
+*Figure 9: Sequence Diagram detailing the Find feature execution.*
+![Sequence Diagram for Find Command](images/find-command-diagram.png)
+
+If `/sort` is specified, `sortMatches()` applies a `Comparator.comparingDouble(Expense::getAmount)` (reversed for `desc`) to the result list before display.
+
+Because `find` is a read-only query, `FindCommand.shouldPersist()` returns `false`.
+
+**Design Considerations:**
+- **Why private predicate methods instead of one large `if`?** Extracting `matchesCategory()`, `matchesKeyword()`, `matchesDateRange()`, and `matchesAmountRange()` into separate methods keeps the main loop readable and makes it easy to add new filter dimensions in the future without touching existing logic.
+- **Why sort in the command rather than delegating to `ExpenseList`?** The sort only applies to the filtered result set, not the entire expense list. Sorting a temporary `ArrayList` avoids mutating persisted state for a read-only operation.
+
+---
+
+### Help Feature
+
+The help feature displays all available commands and their usage formats.
+
+**How it works:**
+The user types `help` with no arguments. Trailing text is rejected.
+
+**Implementation:**
+`HelpCommand` is one of the simplest commands in the system. It contains no business logic — its `execute()` method delegates entirely to `Ui.showHelp()`, which prints a formatted list of every command, its flags, and a short description.
+
+Below is the sequence of interactions when the user enters `help`:
+
+*Figure 10: Sequence Diagram detailing the Help feature execution.*
+![Sequence Diagram for Help Command](images/help-command-diagram.png)
+
+Because help is read-only, `HelpCommand.shouldPersist()` returns `false`.
+
+---
+
+### Storage & Persistence
+
+The `Storage` class is responsible for reading and writing all application data to `data/expenses.txt`, ensuring data persists between sessions.
+
+**How it works:**
+On startup, `SpendSwift` calls `Storage.load()` to populate the `ExpenseList`. After every state-changing command (where `shouldPersist()` returns `true`), `SpendSwift` calls `Storage.save()` to write the full dataset back to disk.
+
+**Implementation:**
+The data file uses a pipe-delimited format. Three types of lines are supported:
+
+| Line type | Format |
+|-----------|--------|
+| Budget | `BUDGET \| amount` |
+| Expense (v2.0) | `amount \| date \| category \| description` |
+| Expense (v1.0, legacy) | `amount \| description` |
+| Loan | `LOAN \| amount \| date \| borrower \| repaid` |
+
+During `load()`, the `Storage` class identifies each line type by prefix or field count:
+1. Lines starting with `BUDGET |` are parsed and passed to `ExpenseList.setBudget()`.
+2. Lines starting with `LOAN |` are routed to `parseLoanLine()` and added via `ExpenseList.addLoan()`.
+3. All other lines are parsed by `parseLine()`, which handles both 4-field (v2.0) and 2-field (v1.0 legacy) formats, creating `Expense` objects and adding them via `ExpenseList.addExpense()`.
+
+Malformed or corrupt lines are skipped with a user-visible warning via `Ui.showMalformedLineWarning()`, ensuring the application never crashes on bad data.
+
+Below is the sequence of interactions during load and save:
+
+*Figure 11: Sequence Diagram detailing the Storage load and save phases.*
+![Sequence Diagram for Storage](images/storage-diagram.png)
+
+During `save()`, the `Storage` class:
+1. Creates the parent directory if it does not exist.
+2. Writes the budget line (if set).
+3. Iterates over all expenses, writing each in v2.0 format.
+4. Iterates over all loans, writing each with the `LOAN` prefix.
+
+**Design Considerations:**
+- **Why a single flat file instead of separate files for expenses, loans, and budget?** A single file simplifies atomic saves — either the entire state is written successfully or the previous version remains intact. Splitting across files introduces partial-write risks.
+- **Why backward compatibility with 2-field lines?** Early v1.0 users had existing save files with only `amount | description`. Rather than requiring a migration step, `parseLine()` silently upgrades these to the current format (defaulting category to "Others" and date to today) on the next save cycle.
+- **Why `ResolverStyle.STRICT` for date parsing?** Without strict mode, `LocalDate.parse("2026-02-30")` would silently adjust to Feb 28. Strict mode rejects impossible calendar dates outright, preventing silent data corruption.
+
+---
+
 ### Input Validation (Strict Commands)
 
 The `list`, `help`, `exit`, and `total` commands do not accept any arguments.
@@ -241,7 +337,10 @@ SpendSwift solves the problem of friction in financial tracking. Most budgeting 
 |v1.0|user|delete an expense by index|remove entries I added by mistake|
 |v2.0|user|assign a category and date to an expense|organise my spending history|
 |v2.0|user|edit an existing expense|correct mistakes without deleting and re-adding entries|
-|v2.0|user|find a to-do item by name|locate a to-do without having to go through the entire list|
+|v2.0|user|find expenses by keyword|locate specific expenses without scrolling through the entire list|
+|v2.0|user|filter expenses by category, date, or amount|narrow down my spending records to what I need|
+|v2.0|user|see a help menu|quickly recall all available commands and their formats|
+|v2.0|user|have my data saved automatically|not lose my expense history when I close the app|
 
 ## Non-Functional Requirements
 
@@ -277,6 +376,34 @@ Given below are instructions to test the app manually.
 3. **Test invalid date format:**
    * Run: `add 10.00 Movie /da 24-03-2026`
    * *Expected:* An error message prompts the user to use the `YYYY-MM-DD` format. The expense is *not* added.
+
+### Testing the Find Command
+1. **Test keyword search:**
+   * Run: `add 5.50 Coffee /c Food /da 2026-01-10`, then `find coffee`
+   * *Expected:* The matching expense containing "Coffee" is displayed.
+2. **Test category filter:**
+   * Run: `find /c Food`
+   * *Expected:* Only expenses in the "Food" category are shown.
+3. **Test date range filter:**
+   * Run: `find /dmin 2026-01-01 /dmax 2026-06-30`
+   * *Expected:* Only expenses within the specified date range are shown.
+4. **Test amount range filter:**
+   * Run: `find /amin 5 /amax 20`
+   * *Expected:* Only expenses between $5.00 and $20.00 are shown.
+5. **Test sort order:**
+   * Run: `find /c Food /sort desc`
+   * *Expected:* Food expenses are listed from highest to lowest amount.
+6. **Test no match:**
+   * Run: `find xyznonexistent`
+   * *Expected:* A "No expenses found" message is displayed.
+
+### Testing the Help Command
+1. **Test help output:**
+   * Run: `help`
+   * *Expected:* A formatted list of all available commands and their formats is displayed.
+2. **Test help with trailing arguments:**
+   * Run: `help something`
+   * *Expected:* An "Unknown command" error is shown.
 
 ### Testing the Budget Feature
 1. **Setting a budget:**

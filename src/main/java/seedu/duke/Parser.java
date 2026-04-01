@@ -82,11 +82,7 @@ public class Parser {
             return parseEditCommand(arguments, ui);
 
         case "find":
-            if (arguments.isEmpty()) {
-                ui.showFindUsage();
-                return null;
-            }
-            return new FindCommand(ui, arguments);
+            return parseFindCommand(arguments, ui);
 
         case "budget":
             if (arguments.isEmpty()) {
@@ -498,6 +494,130 @@ public class Parser {
         return new RepayCommand(ui, index);
     }
 
+
+    /**
+     * Parses the argument string for the find command and returns a FindCommand.
+     * Supports optional flags: /c CATEGORY, /dmin DATE, /dmax DATE,
+     * /amin AMOUNT, /amax AMOUNT, /sort asc|desc.
+     *
+     * @param arguments The portion of user input after the find keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed FindCommand, or null if the input is invalid.
+     */
+    private static Command parseFindCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            ui.showFindUsage();
+            return null;
+        }
+
+        String workingStr = arguments;
+        String categoryFilter = null;
+        LocalDate dateMin = null;
+        LocalDate dateMax = null;
+        Double amountMin = null;
+        Double amountMax = null;
+        String sortOrder = null;
+
+        if (workingStr.contains("/sort")) {
+            int flagIdx = workingStr.indexOf("/sort");
+            String after = workingStr.substring(flagIdx + "/sort".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+            if (tokens[0].equals("asc") || tokens[0].equals("desc")) {
+                sortOrder = tokens[0];
+            } else {
+                ui.showFindUsage();
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        if (workingStr.contains("/amin")) {
+            int flagIdx = workingStr.indexOf("/amin");
+            String after = workingStr.substring(flagIdx + "/amin".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+            try {
+                amountMin = Double.parseDouble(tokens[0]);
+            } catch (NumberFormatException e) {
+                ui.showInvalidAmount();
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        if (workingStr.contains("/amax")) {
+            int flagIdx = workingStr.indexOf("/amax");
+            String after = workingStr.substring(flagIdx + "/amax".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+            try {
+                amountMax = Double.parseDouble(tokens[0]);
+            } catch (NumberFormatException e) {
+                ui.showInvalidAmount();
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        if (workingStr.contains("/dmin")) {
+            int flagIdx = workingStr.indexOf("/dmin");
+            String after = workingStr.substring(flagIdx + "/dmin".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+            dateMin = parseDate(tokens[0], ui);
+            if (dateMin == null) {
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        if (workingStr.contains("/dmax")) {
+            int flagIdx = workingStr.indexOf("/dmax");
+            String after = workingStr.substring(flagIdx + "/dmax".length()).trim();
+            String[] tokens = after.split("\\s+", 2);
+            dateMax = parseDate(tokens[0], ui);
+            if (dateMax == null) {
+                return null;
+            }
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = tokens.length > 1 ? tokens[1].trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        if (workingStr.contains("/c")) {
+            int flagIdx = workingStr.indexOf("/c");
+            String after = workingStr.substring(flagIdx + 2).trim();
+            int nextSlash = after.indexOf('/');
+            String value = (nextSlash >= 0)
+                    ? after.substring(0, nextSlash).trim() : after.trim();
+            if (value.isEmpty()) {
+                ui.showFindUsage();
+                return null;
+            }
+            categoryFilter = value;
+            String before = workingStr.substring(0, flagIdx).trim();
+            String remaining = (nextSlash >= 0) ? after.substring(nextSlash).trim() : "";
+            workingStr = (before + " " + remaining).trim();
+        }
+
+        String keyword = workingStr.trim();
+        boolean hasAnyFilter = categoryFilter != null || dateMin != null
+                || dateMax != null || amountMin != null || amountMax != null
+                || sortOrder != null;
+
+        if (keyword.isEmpty() && !hasAnyFilter) {
+            ui.showFindUsage();
+            return null;
+        }
+
+        return new FindCommand(ui, keyword, categoryFilter,
+                dateMin, dateMax, amountMin, amountMax, sortOrder);
+    }
 
     /**
      * Parses a date string strictly following the YYYY-MM-DD format.

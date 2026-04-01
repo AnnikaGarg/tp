@@ -400,6 +400,91 @@ public class ParserTest {
     }
 
     @Test
+    public void parse_findCommandWithCategory_returnsFindCommand() {
+        Command command = Parser.parse("find /c Food", ui);
+        assertTrue(command instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandKeywordAndCategory_returnsFindCommand() {
+        Command command = Parser.parse("find coffee /c Food", ui);
+        assertTrue(command instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandEmptyCategoryValue_returnsNull() {
+        assertNull(Parser.parse("find /c", ui));
+    }
+
+    @Test
+    public void parse_findCommandDateMin_returnsFindCommand() {
+        assertTrue(Parser.parse("find /dmin 2026-01-01", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandDateMax_returnsFindCommand() {
+        assertTrue(Parser.parse("find /dmax 2026-12-31", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandDateRange_returnsFindCommand() {
+        assertTrue(Parser.parse("find /dmin 2026-01-01 /dmax 2026-06-30", ui)
+                instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandInvalidDateMin_returnsNull() {
+        assertNull(Parser.parse("find /dmin baddate", ui));
+    }
+
+    @Test
+    public void parse_findCommandAmountMin_returnsFindCommand() {
+        assertTrue(Parser.parse("find /amin 5.00", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandAmountMax_returnsFindCommand() {
+        assertTrue(Parser.parse("find /amax 20.00", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandAmountRange_returnsFindCommand() {
+        assertTrue(Parser.parse("find /amin 5 /amax 20", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandInvalidAmountMin_returnsNull() {
+        assertNull(Parser.parse("find /amin abc", ui));
+    }
+
+    @Test
+    public void parse_findCommandInvalidAmountMax_returnsNull() {
+        assertNull(Parser.parse("find /amax xyz", ui));
+    }
+
+    @Test
+    public void parse_findCommandSortAsc_returnsFindCommand() {
+        assertTrue(Parser.parse("find /c Food /sort asc", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandSortDesc_returnsFindCommand() {
+        assertTrue(Parser.parse("find /c Food /sort desc", ui) instanceof FindCommand);
+    }
+
+    @Test
+    public void parse_findCommandSortInvalid_returnsNull() {
+        assertNull(Parser.parse("find /c Food /sort sideways", ui));
+    }
+
+    @Test
+    public void parse_findCommandAllFilters_returnsFindCommand() {
+        assertTrue(Parser.parse(
+                "find lunch /c Food /dmin 2026-01-01 /dmax 2026-12-31 /amin 1 /amax 50 /sort asc",
+                ui) instanceof FindCommand);
+    }
+
+    @Test
     public void parse_emptyString_returnsNull() {
         assertNull(Parser.parse("", ui));
     }
