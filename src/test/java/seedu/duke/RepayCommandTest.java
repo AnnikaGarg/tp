@@ -83,4 +83,35 @@ public class RepayCommandTest {
     public void shouldPersist_returnsTrue() {
         assertTrue(new RepayCommand(ui, 1).shouldPersist());
     }
+
+    @Test
+    public void execute_noOutstandingLoans_showsNoLoansMessage() {
+        ExpenseList expenseList = new ExpenseList();
+
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        java.io.PrintStream original = System.out;
+        System.setOut(new java.io.PrintStream(out));
+
+        new RepayCommand(ui, 1).execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("no outstanding loans"),
+                "Should show no outstanding loans message");
+    }
+
+    @Test
+    public void execute_indexOutOfRange_showsInvalidIndex() {
+        ExpenseList expenseList = new ExpenseList();
+        expenseList.addLoan(new Loan("Alice", 10.00, null));
+
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        java.io.PrintStream original = System.out;
+        System.setOut(new java.io.PrintStream(out));
+
+        new RepayCommand(ui, 99).execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("Invalid loan index"),
+                "Out-of-range index should show error");
+    }
 }

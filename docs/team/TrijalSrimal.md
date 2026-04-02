@@ -32,9 +32,10 @@ This section summarizes my specific contributions to the project. My primary foc
     * Updated User Stories to cover find, filter, help, and persistence.
 
 * **Contributions to Team-based Tasks**:
-    * Drove test coverage from baseline to 89% line coverage / 79% branch coverage across the codebase.
+    * Drove test coverage from baseline to 97% line coverage / 84% branch coverage across the codebase.
     * Authored integration tests (`SpendSwiftTest`) verifying persistence across restarts, delete-after-add workflows, and edge cases.
     * Authored comprehensive test suites for `FindCommand`, `Storage`, `HelpCommand`, `ListCommand`, and `Parser`.
+    * Added tests for teammates' `AddCommand` (interactive category prompt via stdin) and `BudgetCommand` (view/set paths, budget exceeded warning) to improve overall project test coverage.
 
 * **Review/Mentoring Contributions**:
     * Reviewed and merged PRs from teammates, ensuring changes were compatible with the storage persistence flow.

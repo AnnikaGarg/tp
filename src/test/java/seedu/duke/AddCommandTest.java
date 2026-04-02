@@ -2,6 +2,7 @@ package seedu.duke;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 
@@ -105,5 +106,91 @@ public class AddCommandTest {
         AddCommand addCommand = new AddCommand(ui, "Coffee", 5.50, "Food", null);
 
         assertFalse(addCommand.isExit());
+    }
+
+    @Test
+    public void shouldPersist_returnsTrue() {
+        Ui ui = new Ui();
+        AddCommand addCommand = new AddCommand(ui, "Coffee", 5.50, "Food", null);
+        assertTrue(addCommand.shouldPersist());
+    }
+
+    @Test
+    public void execute_nullCategory_selectsFromPromptByNumber() {
+        // Simulate user typing "1" to select first category (Food)
+        java.io.InputStream originalIn = System.in;
+        System.setIn(new java.io.ByteArrayInputStream("1\n".getBytes()));
+
+        ExpenseList expenseList = new ExpenseList();
+        Ui ui = new Ui();
+        AddCommand cmd = new AddCommand(ui, "Coffee", 5.50, null, null);
+        cmd.execute(expenseList);
+
+        System.setIn(originalIn);
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Food", expenseList.getExpense(0).getCategory());
+    }
+
+    @Test
+    public void execute_nullCategoryEmptyInput_defaultsToOthers() {
+        java.io.InputStream originalIn = System.in;
+        System.setIn(new java.io.ByteArrayInputStream("\n".getBytes()));
+
+        ExpenseList expenseList = new ExpenseList();
+        Ui ui = new Ui();
+        AddCommand cmd = new AddCommand(ui, "Coffee", 5.50, null, null);
+        cmd.execute(expenseList);
+
+        System.setIn(originalIn);
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Others", expenseList.getExpense(0).getCategory());
+    }
+
+    @Test
+    public void execute_nullCategoryInvalidNumber_defaultsToOthers() {
+        java.io.InputStream originalIn = System.in;
+        System.setIn(new java.io.ByteArrayInputStream("999\n".getBytes()));
+
+        ExpenseList expenseList = new ExpenseList();
+        Ui ui = new Ui();
+        AddCommand cmd = new AddCommand(ui, "Coffee", 5.50, null, null);
+        cmd.execute(expenseList);
+
+        System.setIn(originalIn);
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Others", expenseList.getExpense(0).getCategory());
+    }
+
+    @Test
+    public void execute_nullCategoryNewName_createsCategory() {
+        java.io.InputStream originalIn = System.in;
+        System.setIn(new java.io.ByteArrayInputStream("Snacks\n".getBytes()));
+
+        ExpenseList expenseList = new ExpenseList();
+        Ui ui = new Ui();
+        AddCommand cmd = new AddCommand(ui, "Chips", 3.00, null, null);
+        cmd.execute(expenseList);
+
+        System.setIn(originalIn);
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Snacks", expenseList.getExpense(0).getCategory());
+        assertTrue(expenseList.getCategoryList().contains("Snacks"));
+    }
+
+    @Test
+    public void execute_overBudget_showsWarning() {
+        ExpenseList expenseList = new ExpenseList();
+        expenseList.setBudget(5.00);
+        Ui ui = new Ui();
+
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        java.io.PrintStream original = System.out;
+        System.setOut(new java.io.PrintStream(out));
+
+        new AddCommand(ui, "Dinner", 10.00, "Food", null).execute(expenseList);
+
+        System.setOut(original);
+        assertTrue(out.toString().contains("exceeded"),
+                "Adding over budget should show exceeded warning");
     }
 }

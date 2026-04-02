@@ -489,3 +489,11 @@ Given below are instructions to test the app manually.
 4. **Invalid budget input:**
    * Run: `budget 0`
    * *Expected:* An invalid budget message is shown and the current budget remains unchanged.
+
+### Automated Test Coverage
+
+The project uses JUnit 5 for automated testing. Test suites exist for every command class, the `Parser`, `Storage`, `ExpenseList`, `Expense`, `Loan`, and `Ui`. Integration tests in `SpendSwiftTest` verify end-to-end workflows including persistence across restarts.
+
+As of the latest build, the project achieves **97% line coverage** and **84% branch coverage** across all classes. The remaining uncovered branches are primarily:
+- **Assertion branches**: Java `assert` statements are counted as branches by JaCoCo. Since assertions verify invariants that are always true in correct code, these branches are intentionally never taken during normal execution.
+- **IOException catch blocks**: Error paths in `Storage` that fire only on filesystem failures (disk full, permission denied). These are platform-dependent and not practical to trigger in portable JUnit tests.
