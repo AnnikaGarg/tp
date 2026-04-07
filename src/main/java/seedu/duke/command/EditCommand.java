@@ -48,6 +48,7 @@ public class EditCommand extends Command {
     /**
      * Executes the edit command by replacing the expense at the given index
      * with a new Expense built from the merged original and updated fields.
+     * Re-sorts the list by date if the date was changed.
      *
      * @param expenseList The list of expenses to operate on.
      */
@@ -70,6 +71,10 @@ public class EditCommand extends Command {
 
         Expense updated = new Expense(updatedDescription, updatedAmount, updatedCategory, updatedDate);
         expenseList.setExpense(zeroBasedIndex, updated);
+
+        if (newDate != null) {
+            expenseList.sortExpenses(SortCommand.BY_DATE);
+        }
 
         ui.showEditExpense(existing, updated, index);
 

@@ -109,18 +109,25 @@ public class EditCommandTest {
 
     @Test
     public void execute_editDateOnly_updatesDateCorrectly() {
+        // Expense moves position after re-sort, so find it by description rather than index.
         LocalDate newDate = LocalDate.of(2026, 1, 15);
-        EditCommand command = new EditCommand(ui, 1, null, null, null, newDate);
-        command.execute(expenseList);
+        new EditCommand(ui, 1, null, null, null, newDate).execute(expenseList);
 
-        Expense updated = expenseList.getExpense(0);
+        Expense updated = null;
+        for (int i = 0; i < expenseList.getSize(); i++) {
+            if (expenseList.getExpense(i).getDescription().equals("Chicken Rice")) {
+                updated = expenseList.getExpense(i);
+                break;
+            }
+        }
+        assertTrue(updated != null);
         assertEquals(newDate, updated.getDate());
-        assertEquals("Chicken Rice", updated.getDescription());
         assertEquals(3.50, updated.getAmount());
     }
 
     @Test
     public void execute_editAllFourFields_updatesAllCorrectly() {
+        // newDate is in the future so after re-sort this expense stays at index 0.
         LocalDate newDate = LocalDate.of(2026, 6, 1);
         EditCommand command = new EditCommand(ui, 1, 8.00, "Laksa", "Food", newDate);
         command.execute(expenseList);
@@ -136,5 +143,20 @@ public class EditCommandTest {
     public void shouldPersist_returnsTrue() {
         EditCommand command = new EditCommand(ui, 1, 5.00, null, null, null);
         assertTrue(command.shouldPersist());
+    }
+
+    @Test
+    public void execute_editDate_listRemainsInChronologicalOrder() {
+        ExpenseList list = new ExpenseList();
+        list.addExpense(new Expense("Lunch", 5.00, "Food",      LocalDate.of(2026, 3, 10)));
+        list.addExpense(new Expense("Bus",   1.50, "Transport", LocalDate.of(2026, 3,  5)));
+
+        new EditCommand(ui, 1, null, null, null, LocalDate.of(2026, 3, 1)).execute(list);
+
+        assertEquals(LocalDate.of(2026, 3, 5), list.getExpense(0).getDate());
+        assertEquals(LocalDate.of(2026, 3, 1), list.getExpense(1).getDate());
+        for (int i = 0; i < list.getSize() - 1; i++) {
+            assertTrue(!list.getExpense(i).getDate().isBefore(list.getExpense(i + 1).getDate()));
+        }
     }
 }
