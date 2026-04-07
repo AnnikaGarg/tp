@@ -114,7 +114,7 @@ public class ListCommandTest {
     }
 
     @Test
-    public void execute_monthlyList_noExpensesForMonth_printsEmptyMonthMessage() {
+    public void execute_monthlyList_printsEmptyMonthMessage() {
         Ui ui = new Ui();
         ExpenseList expenseList = new ExpenseList();
         expenseList.addExpense(new Expense("Movie", 15.00, "Entertainment", LocalDate.of(2026, 5, 1)));
