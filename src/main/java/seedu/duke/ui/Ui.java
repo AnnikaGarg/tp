@@ -1,8 +1,8 @@
 package seedu.duke.ui;
 
-import seedu.duke.Expense;
-import seedu.duke.ExpenseList;
-import seedu.duke.Loan;
+import seedu.duke.model.Expense;
+import seedu.duke.model.ExpenseList;
+import seedu.duke.model.Loan;
 
 import java.time.YearMonth;
 import java.util.ArrayList;

@@ -1,5 +1,9 @@
 package seedu.duke;
 
+import seedu.duke.command.Command;
+import seedu.duke.model.ExpenseList;
+import seedu.duke.parser.Parser;
+import seedu.duke.storage.Storage;
 import seedu.duke.ui.Ui;
 
 /**
