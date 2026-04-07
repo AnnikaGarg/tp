@@ -1,4 +1,6 @@
 package seedu.duke;
+import seedu.duke.ui.Ui;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,10 +11,14 @@ import java.time.format.ResolverStyle;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.time.YearMonth;
+import java.util.Map;
+import java.util.TreeMap;
 /**
  * Handles reading and writing expense data to a text file
  * so that data persists between sessions.
- * Each line in the file stores one expense in the format: AMOUNT | DATE | CATEGORY | DESCRIPTION.
+ * Expense lines use the format: AMOUNT | DATE | CATEGORY | DESCRIPTION.
+ * Budget lines use the format: BUDGET | YYYY-MM | AMOUNT.
  * Loan lines use the format: LOAN | AMOUNT | DATE | BORROWER | REPAID.
  */
 public class Storage {
@@ -32,6 +38,8 @@ public class Storage {
     private static final int LOAN_IDX_REPAID   = 3;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter YEAR_MONTH_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM").withResolverStyle(ResolverStyle.STRICT);
     private static final Logger logger = Logger.getLogger(Storage.class.getName());
     private final String filePath;
     private final Ui ui;
@@ -74,15 +82,7 @@ public class Storage {
                     continue;
                 }
                 if (line.startsWith("BUDGET" + SEPARATOR)) {
-                    String budgetString = line.substring(("BUDGET" + SEPARATOR).length()).trim();
-                    try {
-                        double budget = Double.parseDouble(budgetString);
-                        if (budget >= 0) {
-                            expenseList.setBudget(budget);
-                        }
-                    } catch (NumberFormatException e) {
-                        ui.showMalformedLineWarning(line);
-                    }
+                    parseBudgetLine(line, expenseList);
                     continue;
                 }
                 if (line.startsWith("LOAN" + SEPARATOR)) {
@@ -125,8 +125,13 @@ public class Storage {
             }
         }
         try (FileWriter writer = new FileWriter(file)) {
-            if (expenseList.hasBudget()) {
-                writer.write("BUDGET" + SEPARATOR + expenseList.getBudget() + System.lineSeparator());
+            for (Map.Entry<YearMonth, Double> entry : new TreeMap<>(expenseList.getMonthlyBudgets()).entrySet()) {
+                writer.write(
+                        "BUDGET"
+                                + SEPARATOR + entry.getKey().format(YEAR_MONTH_FORMAT)
+                                + SEPARATOR + entry.getValue()
+                                + System.lineSeparator()
+                );
             }
             for (int i = 0; i < expenseList.getSize(); i++) {
                 Expense expense = expenseList.getExpense(i);
@@ -241,6 +246,51 @@ public class Storage {
             ui.showInvalidAmountLineWarning(line);
             logger.log(Level.WARNING, "Loan line rejected: " + line, e);
             return null;
+        }
+    }
+
+    /**
+     * Parses a budget line from the data file and stores it in the given ExpenseList.
+     * Supports both the old format:
+     * BUDGET | AMOUNT
+     * and the new format:
+     * BUDGET | YYYY-MM | AMOUNT
+     *
+     * @param line The full budget line including the BUDGET prefix.
+     * @param expenseList The ExpenseList to update.
+     */
+    private void parseBudgetLine(String line, ExpenseList expenseList) {
+        String payload = line.substring(("BUDGET" + SEPARATOR).length()).trim();
+        String[] parts = payload.split(SPLIT_REGEX);
+
+        try {
+            if (parts.length == 1) {
+                double budget = Double.parseDouble(parts[0].trim());
+                if (budget > 0) {
+                    expenseList.setBudget(YearMonth.now(), budget);
+                } else {
+                    ui.showMalformedLineWarning(line);
+                }
+                return;
+            }
+
+            if (parts.length == 2) {
+                YearMonth month = YearMonth.parse(parts[0].trim(), YEAR_MONTH_FORMAT);
+                double budget = Double.parseDouble(parts[1].trim());
+
+                if (budget > 0) {
+                    expenseList.setBudget(month, budget);
+                } else {
+                    ui.showMalformedLineWarning(line);
+                }
+                return;
+            }
+
+            ui.showMalformedLineWarning(line);
+            logger.warning("Malformed budget line skipped: " + line);
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            ui.showMalformedLineWarning(line);
+            logger.log(Level.WARNING, "Budget line rejected: " + line, e);
         }
     }
 }

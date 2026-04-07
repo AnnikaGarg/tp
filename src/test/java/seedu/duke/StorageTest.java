@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import seedu.duke.ui.Ui;
+
 public class StorageTest {
     @TempDir
     Path tempDir;

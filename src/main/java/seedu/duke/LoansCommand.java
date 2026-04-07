@@ -1,5 +1,7 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
 /**
  * Handles the logic for displaying the loan list.
  */

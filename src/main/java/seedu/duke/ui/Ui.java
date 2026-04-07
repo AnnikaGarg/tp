@@ -1,4 +1,9 @@
-package seedu.duke;
+package seedu.duke.ui;
+import seedu.duke.Expense;
+import seedu.duke.ExpenseList;
+import seedu.duke.Loan;
+
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -70,10 +75,10 @@ public class Ui {
         System.out.println(LINE);
         System.out.println("Here are the available commands:");
         System.out.println("  add AMOUNT [/c CATEGORY] [/da DATE] DESC  - Add a new expense");
-        System.out.println("  list                                      - List all expenses");
+        System.out.println("  list [YYYY-MM]                            - List all expenses or expenses for a month");
         System.out.println("  total                                     - Show total amount spent");
-        System.out.println("  budget [AMOUNT]                           - Set or view spending budget");
-        System.out.println("                                              (no amount = view current budget)");
+        System.out.println("  budget [AMOUNT]                           - View/set current month's budget");
+        System.out.println("  budget [YYYY-MM] [AMOUNT]                 - View/set a specific month's budget");
         System.out.println("  delete INDEX                              - Delete an expense by index");
         System.out.println("  edit INDEX [/a AMOUNT] [/de DESC]         - Edit an existing expense");
         System.out.println("             [/c CATEGORY] [/da DATE]");
@@ -107,6 +112,27 @@ public class Ui {
         System.out.println("Here are your tracked expenses:");
         for (int i = 0; i < expenseList.getSize(); i++) {
             System.out.println((i + 1) + ". " + expenseList.getExpense(i));
+        }
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays all expenses recorded in the specified month.
+     *
+     * @param expenses The list of expenses to display.
+     * @param month The month being displayed.
+     */
+    public void showExpenseList(ArrayList<Expense> expenses, YearMonth month) {
+        System.out.println(LINE);
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses found for " + month + ".");
+            System.out.println(LINE);
+            return;
+        }
+
+        System.out.println("Here are your tracked expenses for " + month + ":");
+        for (int i = 0; i < expenses.size(); i++) {
+            System.out.println((i + 1) + ". " + expenses.get(i));
         }
         System.out.println(LINE);
     }
@@ -262,37 +288,56 @@ public class Ui {
     }
 
     /**
-     * Displays a confirmation message when a budget is successfully set.
+     * Displays a confirmation message when a monthly budget is successfully set.
      *
+     * @param month The month for which the budget was set.
      * @param budget The budget amount that was set.
      */
-    public void showBudgetSet(double budget) {
+    public void showBudgetSet(YearMonth month, double budget) {
         System.out.println(LINE);
-        System.out.println("Budget set to $" + String.format("%.2f", budget));
+        System.out.println("Budget for " + month + " set to $" + String.format("%.2f", budget));
         System.out.println(LINE);
     }
 
     /**
-     * Displays a warning message when the total spending exceeds the budget.
+     * Displays a warning message when spending for a month exceeds that month's budget.
      *
-     * @param budget The budget limit.
-     * @param total  The current total spending.
+     * @param month The month whose budget has been exceeded.
+     * @param budget The budget limit for the month.
+     * @param total The current total spending for the month.
      */
-    public void showBudgetExceededWarning(double budget, double total) {
+    public void showBudgetExceededWarning(YearMonth month, double budget, double total) {
         System.out.println(LINE);
-        System.out.println("Warning: You have exceeded your budget of $"
-                + String.format("%.2f", budget) + "!");
+        System.out.println("Warning: You have exceeded your budget for " + month + "!");
+        System.out.println("Budget: $" + String.format("%.2f", budget));
         System.out.println("Current total: $" + String.format("%.2f", total));
         System.out.println(LINE);
     }
 
     /**
-     * Displays a message indicating that the budget has not been set.
+     * Displays a confirmation message when an existing monthly budget is overwritten.
+     *
+     * @param month The month whose budget was updated.
+     * @param oldBudget The previous budget amount.
+     * @param newBudget The new budget amount.
      */
-    public void showBudgetNotSet() {
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        System.out.println("Budget not set yet! Use: budget <amount>");
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    public void showBudgetUpdated(YearMonth month, double oldBudget, double newBudget) {
+        System.out.println(LINE);
+        System.out.println("Budget for " + month + " updated from $"
+                + String.format("%.2f", oldBudget) + " to $" + String.format("%.2f", newBudget));
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays a message indicating that no budget has been set for the given month.
+     *
+     * @param month The month with no budget set.
+     */
+    public void showBudgetNotSet(YearMonth month) {
+        System.out.println(LINE);
+        System.out.println("No budget set for " + month + ".");
+        System.out.println("Use: budget " + month + " <amount>");
+        System.out.println(LINE);
     }
 
     /**
@@ -303,18 +348,28 @@ public class Ui {
      * @param totalSpent The total amount spent.
      * @param remaining The remaining budget. Can be negative if exceeded.
      */
-    public void showBudgetDetails(double budget, double totalSpent, double remaining) {
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        System.out.println("Current budget: $" + budget);
-        System.out.println("Total spent: $" + totalSpent);
+    /**
+     * Displays the budget details for a specific month, including total spent and remaining budget.
+     * If the budget is exceeded, the exceeded amount is shown instead.
+     *
+     * @param month The month whose budget details are being displayed.
+     * @param budget The budget set for that month.
+     * @param totalSpent The total amount spent in that month.
+     * @param remaining The remaining budget. Can be negative if exceeded.
+     */
+    public void showBudgetDetails(YearMonth month, double budget, double totalSpent, double remaining) {
+        System.out.println(LINE);
+        System.out.println("Budget summary for " + month + ":");
+        System.out.println("Budget: $" + String.format("%.2f", budget));
+        System.out.println("Spent: $" + String.format("%.2f", totalSpent));
 
         if (remaining >= 0) {
-            System.out.println("Remaining budget: $" + remaining);
+            System.out.println("Remaining: $" + String.format("%.2f", remaining));
         } else {
-            System.out.println("Budget exceeded by $" + (-remaining));
+            System.out.println("Exceeded by: $" + String.format("%.2f", -remaining));
         }
 
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println(LINE);
     }
 
     /**
@@ -322,7 +377,10 @@ public class Ui {
      */
     public void showBudgetUsage() {
         System.out.println(LINE);
-        System.out.println("Usage: budget AMOUNT");
+        System.out.println("Usage: budget");
+        System.out.println("       budget <amount>");
+        System.out.println("       budget <YYYY-MM>");
+        System.out.println("       budget <YYYY-MM> <amount>");
         System.out.println(LINE);
     }
 

@@ -1,5 +1,7 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
 /**
  * Represents an executable command.
  * All specific commands must inherit from this class and implement the execute method.

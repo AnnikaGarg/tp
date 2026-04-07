@@ -1,5 +1,8 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
+import java.time.YearMonth;
 import java.time.LocalDate;
 
 /**
@@ -67,6 +70,15 @@ public class EditCommand extends Command {
         expenseList.setExpense(zeroBasedIndex, updated);
 
         ui.showEditExpense(existing, updated, index);
+
+        YearMonth updatedMonth = YearMonth.from(updated.getDate());
+        if (expenseList.isOverBudget(updatedMonth)) {
+            ui.showBudgetExceededWarning(
+                    updatedMonth,
+                    expenseList.getBudget(updatedMonth),
+                    expenseList.getTotalAmountForMonth(updatedMonth)
+            );
+        }
     }
 
     /**

@@ -1,45 +1,53 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
+import java.time.YearMonth;
+
 /**
- * Handles the logic for setting or displaying a spending budget.
+ * Handles the logic for setting or displaying a monthly spending budget.
  */
 public class BudgetCommand extends Command {
+    private final YearMonth budgetMonth;
     private final Double budgetAmount;
 
     /**
-     * Constructs a BudgetCommand with the specified Ui and optional budget amount.
+     * Constructs a BudgetCommand with the specified Ui, target month, and optional budget amount.
      *
      * @param ui The Ui object used to display user-facing messages.
-     * @param budgetAmount The budget amount to set, or null if displaying budget details.
+     * @param budgetMonth The month whose budget is being viewed or set.
+     * @param budgetAmount The budget amount to set, or null if displaying budget details only.
      */
-    public BudgetCommand(Ui ui, Double budgetAmount) {
+    public BudgetCommand(Ui ui, YearMonth budgetMonth, Double budgetAmount) {
         super(ui);
         assert ui != null : "Ui must not be null";
+        assert budgetMonth != null : "Budget month must not be null";
+        this.budgetMonth = budgetMonth;
         this.budgetAmount = budgetAmount;
     }
 
     /**
      * Executes the budget command.
-     * If an amount is provided, sets the budget.
-     * If no amount is provided, displays current budget details.
+     * If an amount is provided, sets or overwrites the budget for the month.
+     * If no amount is provided, displays budget details for the month.
      *
-     * @param expenseList The list whose budget will be updated or queried.
+     * @param expenseList The list whose monthly budget will be updated or queried.
      */
     @Override
     public void execute(ExpenseList expenseList) {
         assert expenseList != null : "ExpenseList must not be null";
 
         if (budgetAmount == null) {
-            if (!expenseList.hasBudget()) {
-                ui.showBudgetNotSet();
+            if (!expenseList.hasBudget(budgetMonth)) {
+                ui.showBudgetNotSet(budgetMonth);
                 return;
             }
 
-            double budget = expenseList.getBudget();
-            double totalSpent = expenseList.getTotalAmount();
-            double remaining = expenseList.getRemainingBudget();
+            double budget = expenseList.getBudget(budgetMonth);
+            double totalSpent = expenseList.getTotalAmountForMonth(budgetMonth);
+            double remaining = expenseList.getRemainingBudget(budgetMonth);
 
-            ui.showBudgetDetails(budget, totalSpent, remaining);
+            ui.showBudgetDetails(budgetMonth, budget, totalSpent, remaining);
             return;
         }
 
@@ -48,12 +56,22 @@ public class BudgetCommand extends Command {
             return;
         }
 
-        expenseList.setBudget(budgetAmount);
-        ui.showBudgetSet(budgetAmount);
-        if (expenseList.isOverBudget()) {
+        boolean isOverwrite = expenseList.hasBudget(budgetMonth);
+        double previousBudget = isOverwrite ? expenseList.getBudget(budgetMonth) : 0.0;
+
+        expenseList.setBudget(budgetMonth, budgetAmount);
+
+        if (isOverwrite) {
+            ui.showBudgetUpdated(budgetMonth, previousBudget, budgetAmount);
+        } else {
+            ui.showBudgetSet(budgetMonth, budgetAmount);
+        }
+
+        if (expenseList.isOverBudget(budgetMonth)) {
             ui.showBudgetExceededWarning(
-                    expenseList.getBudget(),
-                    expenseList.getTotalAmount()
+                    budgetMonth,
+                    expenseList.getBudget(budgetMonth),
+                    expenseList.getTotalAmountForMonth(budgetMonth)
             );
         }
     }

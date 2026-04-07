@@ -1,5 +1,7 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
 /**
  * The main entry point for the SpendSwift application.
  * Initializes the application and starts the interaction loop with the user.

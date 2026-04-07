@@ -1,9 +1,12 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.time.YearMonth;
 
 /**
  * Parses raw user input strings into executable Command objects.
@@ -15,6 +18,8 @@ public class Parser {
 
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter YEAR_MONTH_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM").withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Parses a full command string entered by the user and returns the matching Command.
@@ -45,11 +50,7 @@ public class Parser {
 
         switch (commandWord) {
         case "list":
-            if (!arguments.isEmpty()) {
-                ui.showUnknownCommand();
-                return null;
-            }
-            return new ListCommand(ui);
+            return parseListCommand(arguments, ui);
 
         case "help":
             if (!arguments.isEmpty()) {
@@ -85,20 +86,7 @@ public class Parser {
             return parseFindCommand(arguments, ui);
 
         case "budget":
-            if (arguments.isEmpty()) {
-                return new BudgetCommand(ui, null);
-            }
-            try {
-                double budgetAmount = Double.parseDouble(arguments);
-                if (budgetAmount <= 0) {
-                    ui.showInvalidBudget();
-                    return null;
-                }
-                return new BudgetCommand(ui, budgetAmount);
-            } catch (NumberFormatException e) {
-                ui.showInvalidBudget();
-                return null;
-            }
+            return parseBudgetCommand(arguments, ui);
 
         case "sort":
             if (!arguments.equals("category") && !arguments.equals("date")) {
@@ -213,6 +201,30 @@ public class Parser {
         assert !description.isEmpty() : "Description should not be empty after validation";
 
         return new AddCommand(ui, description, amount, category, date);
+    }
+
+    /**
+     * Parses the argument string for the list command.
+     * Supports:
+     * list
+     * list YYYY-MM
+     *
+     * @param arguments The portion of user input after the list keyword.
+     * @param ui The Ui instance used to display error or usage messages.
+     * @return A fully constructed ListCommand, or null if the input is invalid.
+     */
+    private static Command parseListCommand(String arguments, Ui ui) {
+        if (arguments.isEmpty()) {
+            return new ListCommand(ui, null);
+        }
+
+        YearMonth parsedMonth = parseYearMonth(arguments);
+        if (parsedMonth == null) {
+            ui.showUnknownCommand();
+            return null;
+        }
+
+        return new ListCommand(ui, parsedMonth);
     }
 
     /**
@@ -617,6 +629,83 @@ public class Parser {
 
         return new FindCommand(ui, keyword, categoryFilter,
                 dateMin, dateMax, amountMin, amountMax, sortOrder);
+    }
+
+    /**
+     * Parses the argument string for the budget command and returns a BudgetCommand.
+     * Supports:
+     * budget
+     * budget AMOUNT
+     * budget YYYY-MM
+     * budget YYYY-MM AMOUNT
+     *
+     * @param arguments The portion of user input after the budget keyword.
+     * @param ui        The Ui instance used to display error or usage messages.
+     * @return A fully constructed BudgetCommand, or null if the input is invalid.
+     */
+    private static Command parseBudgetCommand(String arguments, Ui ui) {
+        YearMonth currentMonth = YearMonth.now();
+
+        if (arguments.isEmpty()) {
+            return new BudgetCommand(ui, currentMonth, null);
+        }
+
+        String[] tokens = arguments.split("\\s+");
+        if (tokens.length > 2) {
+            ui.showBudgetUsage();
+            return null;
+        }
+
+        if (tokens.length == 1) {
+            YearMonth parsedMonth = parseYearMonth(tokens[0]);
+            if (parsedMonth != null) {
+                return new BudgetCommand(ui, parsedMonth, null);
+            }
+
+            try {
+                double budgetAmount = Double.parseDouble(tokens[0]);
+                if (budgetAmount <= 0 || Double.isNaN(budgetAmount) || Double.isInfinite(budgetAmount)) {
+                    ui.showInvalidBudget();
+                    return null;
+                }
+                return new BudgetCommand(ui, currentMonth, budgetAmount);
+            } catch (NumberFormatException e) {
+                ui.showBudgetUsage();
+                return null;
+            }
+        }
+
+        YearMonth parsedMonth = parseYearMonth(tokens[0]);
+        if (parsedMonth == null) {
+            ui.showBudgetUsage();
+            return null;
+        }
+
+        try {
+            double budgetAmount = Double.parseDouble(tokens[1]);
+            if (budgetAmount <= 0 || Double.isNaN(budgetAmount) || Double.isInfinite(budgetAmount)) {
+                ui.showInvalidBudget();
+                return null;
+            }
+            return new BudgetCommand(ui, parsedMonth, budgetAmount);
+        } catch (NumberFormatException e) {
+            ui.showInvalidBudget();
+            return null;
+        }
+    }
+
+    /**
+     * Parses a month string strictly following the YYYY-MM format.
+     *
+     * @param monthStr The raw month token to parse.
+     * @return The parsed YearMonth, or null if parsing failed.
+     */
+    private static YearMonth parseYearMonth(String monthStr) {
+        try {
+            return YearMonth.parse(monthStr, YEAR_MONTH_FORMAT);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     /**

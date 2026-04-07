@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import seedu.duke.ui.Ui;
 
 public class UiTest {
     private static final String LINE = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";

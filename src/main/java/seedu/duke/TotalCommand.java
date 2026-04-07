@@ -1,5 +1,7 @@
 package seedu.duke;
 
+import seedu.duke.ui.Ui;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

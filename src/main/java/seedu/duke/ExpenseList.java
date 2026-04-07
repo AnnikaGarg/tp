@@ -1,8 +1,12 @@
 package seedu.duke;
+
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents the list of expenses tracked by the user.
@@ -13,17 +17,18 @@ public class ExpenseList {
     private java.util.ArrayList<String> categories;
     private final ArrayList<Expense> expenses;
     private final ArrayList<Loan> loans;
-    private double budget;
+    private final Map<YearMonth, Double> monthlyBudgets;
 
     public ExpenseList() {
         this.expenses = new ArrayList<>();
         this.loans = new ArrayList<>();
-        this.budget = -1;
+        this.monthlyBudgets = new HashMap<>();
         this.categories = new ArrayList<>(Arrays.asList(
                 "Food", "Transport", "Shopping", "Entertainment", "Health", "Others"
         ));
         assert this.expenses != null : "Expenses list should be initialised in constructor";
         assert this.loans != null : "Loans list should be initialised in constructor";
+        assert this.monthlyBudgets != null : "Monthly budgets map should be initialised in constructor";
     }
 
     /**
@@ -126,43 +131,51 @@ public class ExpenseList {
     }
 
     /**
-     * Sets the spending budget.
+     * Sets or overwrites the budget for the specified month.
      *
-     * @param budget The budget amount to set. Must be greater than 0.
-     * @throws IllegalArgumentException If the budget is not greater than 0.
+     * @param month The month for which the budget is being set.
+     * @param budget The budget amount to store. Must be greater than 0.
+     * @throws IllegalArgumentException If the month is null or the budget is not greater than 0.
      */
-    public void setBudget(double budget) {
+    public void setBudget(YearMonth month, double budget) {
+        if (month == null) {
+            throw new IllegalArgumentException("Month must not be null");
+        }
         if (budget <= 0) {
             throw new IllegalArgumentException("Budget must be greater than 0");
         }
-        this.budget = budget;
+        monthlyBudgets.put(month, budget);
     }
 
     /**
-     * Returns the currently set budget.
+     * Returns the budget for the specified month.
      *
-     * @return The budget amount, or -1 if no budget has been set.
+     * @param month The month whose budget is requested.
+     * @return The budget for that month, or -1 if no budget has been set.
      */
-    public double getBudget() {
-        return budget;
+    public double getBudget(YearMonth month) {
+        return hasBudget(month) ? monthlyBudgets.get(month) : -1;
     }
 
     /**
-     * Returns whether a budget has been set.
+     * Returns whether a budget has been set for the specified month.
      *
-     * @return true if a budget exists, false otherwise.
+     * @param month The month to check.
+     * @return true if a budget exists for the month, false otherwise.
      */
-    public boolean hasBudget() {
-        return budget >= 0;
+    public boolean hasBudget(YearMonth month) {
+        return month != null && monthlyBudgets.containsKey(month);
     }
 
     /**
-     * Returns the remaining budget after subtracting total expenses.
+     * Returns the remaining budget for the specified month after subtracting
+     * that month's total expenses from its budget.
      *
-     * @return Remaining budget. Can be negative if the budget is exceeded.
+     * @param month The month whose remaining budget is requested.
+     * @return The remaining budget. Can be negative if the budget is exceeded.
      */
-    public double getRemainingBudget() {
-        return budget - getTotalAmount();
+    public double getRemainingBudget(YearMonth month) {
+        return getBudget(month) - getTotalAmountForMonth(month);
     }
 
     /**
@@ -179,12 +192,54 @@ public class ExpenseList {
     }
 
     /**
-     * Checks whether the total spending exceeds the budget.
+     * Calculates the total amount of expenses recorded in the specified month.
      *
-     * @return true if total spending is greater than the budget, false otherwise.
+     * @param month The month whose total expense amount is requested.
+     * @return The total expense amount for that month.
      */
-    public boolean isOverBudget() {
-        return hasBudget() && getTotalAmount() > budget;
+    public double getTotalAmountForMonth(YearMonth month) {
+        double total = 0.0;
+        for (Expense expense : expenses) {
+            if (YearMonth.from(expense.getDate()).equals(month)) {
+                total += expense.getAmount();
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Checks whether spending in the specified month exceeds that month's budget.
+     *
+     * @param month The month to check.
+     * @return true if total monthly spending is greater than the month's budget, false otherwise.
+     */
+    public boolean isOverBudget(YearMonth month) {
+        return hasBudget(month) && getTotalAmountForMonth(month) > getBudget(month);
+    }
+
+    /**
+     * Returns a copy of all stored monthly budgets.
+     *
+     * @return A new map containing all monthly budgets.
+     */
+    public Map<YearMonth, Double> getMonthlyBudgets() {
+        return new HashMap<>(monthlyBudgets);
+    }
+
+    /**
+     * Returns all expenses recorded in the specified month.
+     *
+     * @param month The month to filter expenses by.
+     * @return A new list containing only expenses from that month.
+     */
+    public ArrayList<Expense> getMonthlyExpenses(YearMonth month) {
+        ArrayList<Expense> matchingExpenses = new ArrayList<>();
+        for (Expense expense : expenses) {
+            if (YearMonth.from(expense.getDate()).equals(month)) {
+                matchingExpenses.add(expense);
+            }
+        }
+        return matchingExpenses;
     }
 
     /**

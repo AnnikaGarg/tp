@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
+import seedu.duke.ui.Ui;
 
 public class AddCommandTest {
 

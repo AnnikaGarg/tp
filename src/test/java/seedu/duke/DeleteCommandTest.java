@@ -2,6 +2,8 @@ package seedu.duke;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import seedu.duke.ui.Ui;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DeleteCommandTest {
