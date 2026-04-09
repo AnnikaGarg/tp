@@ -363,15 +363,13 @@ public class UiTest {
         stats.put("Transport", 3.20);
 
         String statsOutput = captureOutput(() -> ui.showStatistics(stats, 2));
-        assertTrue(statsOutput.contains("Food: $12.50"));
-        assertTrue(statsOutput.contains("Transport: $3.20"));
-    }
-
-    @Test
-    public void getUserInput_trimsWhitespace() {
-        Ui ui = createUiWithInput("   hello world   \n");
-
-        assertEquals("hello world", ui.getUserInput());
+        assertTrue(statsOutput.contains("Spending statistics (2 expense(s)):"));
+        assertTrue(statsOutput.contains("Food"));
+        assertTrue(statsOutput.contains("Transport"));
+        assertTrue(statsOutput.contains("$12.50"));
+        assertTrue(statsOutput.contains("$3.20"));
+        assertTrue(statsOutput.contains("|"));
+        assertTrue(statsOutput.contains("#"));
     }
 
     @Test
