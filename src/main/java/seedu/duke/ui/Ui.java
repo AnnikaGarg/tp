@@ -94,6 +94,7 @@ public class Ui {
         System.out.println("  repay INDEX                               - Mark a loan as repaid");
         System.out.println("  help                                      - Show this help menu");
         System.out.println("  exit                                      - Exit the application");
+        System.out.println("  forecast                                  - Show end-of-month spending forecast");
         System.out.println("Note: DATE must be in YYYY-MM-DD format (e.g. 2026-03-24).");
         System.out.println("Available categories: Food, Transport, Shopping, Entertainment, Health, Others");
         System.out.println(LINE);
@@ -660,5 +661,32 @@ public class Ui {
         System.out.println("Usage: repay <index>");
         System.out.println("Use 'loans' to see the index of each outstanding loan.");
         System.out.println(LINE);
+    }
+
+    /**
+     * Displays the spending forecast for the current month.
+     */
+    public void showForecast(java.time.YearMonth month, double spentSoFar, int currentDay,
+                             double dailyBurnRate, double projectedTotal,
+                             boolean hasBudget, double budget) {
+        System.out.println("Here is your spending forecast for " + month + ":");
+        System.out.printf("  Spent so far: $%.2f (over %d days)\n", spentSoFar, currentDay);
+        System.out.printf("  Average daily burn rate: $%.2f/day\n", dailyBurnRate);
+        System.out.printf("  Projected end-of-month total: $%.2f\n", projectedTotal);
+
+        System.out.println("-".repeat(50));
+
+        if (hasBudget) {
+            System.out.printf("  Current Budget: $%.2f\n", budget);
+            if (projectedTotal > budget) {
+                double overage = projectedTotal - budget;
+                System.out.printf("  ⚠️ WARNING: At this rate, you will EXCEED your budget by $%.2f!\n", overage);
+            } else {
+                double remaining = budget - projectedTotal;
+                System.out.printf("  ✅ Great job! You are on track to stay under budget by $%.2f.\n", remaining);
+            }
+        } else {
+            System.out.println("  (No budget set for this month. Use 'budget AMOUNT' to track your goals!)");
+        }
     }
 }
