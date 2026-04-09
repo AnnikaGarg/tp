@@ -16,6 +16,7 @@ import seedu.duke.command.SortCommand;
 import seedu.duke.command.StatisticsCommand;
 import seedu.duke.command.TotalCommand;
 import seedu.duke.ui.Ui;
+import seedu.duke.command.ForecastCommand;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -125,6 +126,14 @@ public class Parser {
 
         case "repay":
             return parseRepayCommand(arguments, ui);
+
+        case "forecast":
+            // Strict validation: forecast should not have any trailing arguments
+            if (!arguments.trim().isEmpty()) {
+                ui.showUnknownCommand(); // Or your specific usage error message
+                return null;
+            }
+            return new ForecastCommand(ui);
 
         default:
             ui.showUnknownCommand();
