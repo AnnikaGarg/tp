@@ -86,7 +86,8 @@ public class Ui {
         System.out.println("  find KEYWORD [/c CAT] [/dmin DATE]        - Find/filter expenses");
         System.out.println("       [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
         System.out.println("  sort category|date                        - Sort expenses");
-        System.out.println("  stats                                     - Spending breakdown by category");
+        System.out.println("  stats                                     - Show spending statistics and graph " +
+                "by category");
         System.out.println("  lend AMOUNT BORROWER [/da DATE]           - Record money lent to someone");
         System.out.println("  loans                                     - Show outstanding loans");
         System.out.println("  loans /all                                - Show all loans (incl. repaid)");
@@ -471,22 +472,53 @@ public class Ui {
     }
 
     /**
-     * Displays a per-category breakdown of total spending.
+     * Displays a per-category breakdown of spending as a text-based bar graph.
+     * Categories are shown in descending order of total amount spent, with bar lengths
+     * scaled relative to the highest category total.
      *
-     * @param totals A map of category name to total amount spent in that category.
-     * @param count  The total number of expenses analysed.
+     * If there are no expenses to summarise, a message is shown instead.
+     *
+     * @param totals A map of category names to total amounts spent in each category.
+     * @param count The total number of expenses analysed.
      */
     public void showStatistics(Map<String, Double> totals, int count) {
         System.out.println(LINE);
         System.out.println("Spending statistics (" + count + " expense(s)):");
         if (totals.isEmpty()) {
-            System.out.println("  No expenses to summarise.");
-        } else {
-            for (Map.Entry<String, Double> entry : totals.entrySet()) {
-                System.out.println("  " + entry.getKey()
-                        + ": $" + String.format("%.2f", entry.getValue()));
+            System.out.println("No expenses to summarise.");
+            System.out.println(LINE);
+            return;
+        }
+
+        double maxAmount = 0.0;
+        for (double amount : totals.values()) {
+            if (amount > maxAmount) {
+                maxAmount = amount;
             }
         }
+
+        final int maxBarLength = 20;
+
+        for (Map.Entry<String, Double> entry : totals.entrySet().stream()
+                .sorted((entry1, entry2) -> Double.compare(entry2.getValue(), entry1.getValue()))
+                .toList()) {
+
+            String category = entry.getKey();
+            double amount = entry.getValue();
+
+            int barLength = 0;
+            if (maxAmount > 0) {
+                barLength = (int) Math.round((amount / maxAmount) * maxBarLength);
+            }
+
+            if (amount > 0 && barLength == 0) {
+                barLength = 1;
+            }
+
+            String bar = "#".repeat(barLength);
+            System.out.printf("  %-15s | %-20s $%.2f%n", category, bar, amount);
+        }
+
         System.out.println(LINE);
     }
 
