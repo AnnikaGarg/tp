@@ -254,6 +254,37 @@ public class ExpenseList {
     }
 
     /**
+     * Clears all expenses from the list.
+     */
+    public void clearExpenses() {
+        expenses.clear();
+    }
+
+    /**
+     * Removes all expenses that match the specified category case-insensitively.
+     *
+     * @param category The category to remove.
+     * @return The number of expenses deleted.
+     */
+    public int deleteByCategory(String category) {
+        int initialSize = expenses.size();
+        expenses.removeIf(e -> e.getCategory().equalsIgnoreCase(category));
+        return initialSize - expenses.size();
+    }
+
+    /**
+     * Removes all expenses that fall on the specified date.
+     *
+     * @param date The date to remove.
+     * @return The number of expenses deleted.
+     */
+    public int deleteByDate(LocalDate date) {
+        int initialSize = expenses.size();
+        expenses.removeIf(e -> e.getDate().equals(date));
+        return initialSize - expenses.size();
+    }
+
+    /**
      * Sorts the expense list in place using the given comparator.
      *
      * @param comparator The comparator to determine the order of expenses.

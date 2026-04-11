@@ -55,6 +55,52 @@ public class Ui {
     }
 
     /**
+     * Displays confirmation after clearing all expenses.
+     *
+     * @param originalSize The number of expenses that were cleared.
+     */
+    public void showClear(int originalSize) {
+        System.out.println(LINE);
+        System.out.println("Cleared " + originalSize + " expense(s) from the list.");
+        System.out.println("Your expense list is now empty.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays a confirmation prompt before completely clearing the expense list.
+     */
+    public void showClearConfirmationPrompt() {
+        System.out.println(LINE);
+        System.out.println("Are you sure you want to completely clear all expenses?");
+        System.out.println("This action cannot be undone.");
+        System.out.println("Type 'confirm' to clear, or anything else to cancel:");
+        System.out.print("> ");
+    }
+
+    /**
+     * Displays a message indicating that the clear action was cancelled.
+     */
+    public void showClearCancelled() {
+        System.out.println(LINE);
+        System.out.println("Clear command cancelled. Your expenses are safe!");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays confirmation after batch deleting expenses by category or date.
+     *
+     * @param currentSize  The total number of expenses remaining.
+     * @param deletedCount The number of expenses deleted.
+     * @param criteria     The search criteria used for deletion.
+     */
+    public void showBatchDelete(int currentSize, int deletedCount, String criteria) {
+        System.out.println(LINE);
+        System.out.println("Deleted " + deletedCount + " expense(s) matching: " + criteria);
+        System.out.println("Now you have " + currentSize + " expense(s) in the list.");
+        System.out.println(LINE);
+    }
+
+    /**
      * Displays a before and after summary after editing an expense.
      *
      * @param before The original expense before the edit.
@@ -175,6 +221,8 @@ public class Ui {
     public void showDeleteUsage() {
         System.out.println(LINE);
         System.out.println("Usage: delete <index>");
+        System.out.println("       delete /c <category>");
+        System.out.println("       delete /da <YYYY-MM-DD>");
         System.out.println(LINE);
     }
 
@@ -469,6 +517,7 @@ public class Ui {
         System.out.println(LINE);
         System.out.println("Usage: sort category   (alphabetical by category)");
         System.out.println("       sort date       (chronological by date)");
+        System.out.println("       sort amount     (highest amount first)");
         System.out.println(LINE);
     }
 
@@ -688,5 +737,103 @@ public class Ui {
         } else {
             System.out.println("  (No budget set for this month. Use 'budget AMOUNT' to track your goals!)");
         }
+    }
+
+    /**
+     * Displays a comprehensive yearly dashboard for a given year.
+     * Includes a month-by-month budget breakdown, a category spending summary,
+     * and annual totals.
+     *
+     * @param expenseList The list of expenses.
+     * @param year        The year to display.
+     */
+    public void showYearlyDashboard(ExpenseList expenseList, int year) {
+        System.out.println(LINE);
+        System.out.println("=== YEARLY BUDGET SUMMARY FOR " + year + " ===");
+        System.out.println();
+        System.out.println("Month      | Budget      | Spent       | Remaining   | Used  | Trend");
+        System.out.println("-----------+-------------+-------------+-------------+-------+-------------------------");
+
+        double annualBudget = 0;
+        double annualSpent = 0;
+
+        for (int m = 1; m <= 12; m++) {
+            YearMonth ym = YearMonth.of(year, m);
+            double monthlyBudget = expenseList.getBudget(ym);
+            if (monthlyBudget < 0) {
+                monthlyBudget = 0.0;
+            }
+            
+            double spent = expenseList.getTotalAmountForMonth(ym);
+            double remaining = monthlyBudget - spent;
+            
+            annualBudget += monthlyBudget;
+            annualSpent += spent;
+            
+            long usedPercent = 0;
+            if (monthlyBudget > 0) {
+                usedPercent = Math.round((spent / monthlyBudget) * 100);
+            } else if (spent > 0) {
+                usedPercent = 100;
+            }
+
+            int barLength = (int) (usedPercent / 5);
+            if (barLength > 20) {
+                barLength = 20;
+            } else if (barLength <= 0 && usedPercent > 0) {
+                barLength = 1;
+            }
+            String bar = "▒".repeat(barLength);
+            
+            String monthName = java.time.Month.of(m).name();
+            monthName = monthName.substring(0, 1).toUpperCase() + monthName.substring(1).toLowerCase();
+            String usedStr = usedPercent + "%";
+
+            System.out.printf("%-10s | $ %9.2f | $ %9.2f | $ %9.2f | %5s | %-20s %s%n",
+                              monthName, monthlyBudget, spent, remaining, usedStr, bar, usedStr);
+        }
+
+        System.out.println();
+        System.out.println("=== PER CATEGORY BREAKDOWN ===");
+        System.out.println();
+        
+        java.util.Map<String, Double> categoryTotals = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < expenseList.getSize(); i++) {
+            Expense e = expenseList.getExpense(i);
+            if (e.getDate().getYear() == year) {
+                categoryTotals.put(e.getCategory(), categoryTotals.getOrDefault(e.getCategory(), 0.0) + e.getAmount());
+            }
+        }
+        
+        if (categoryTotals.isEmpty()) {
+            System.out.println("No expenses for this year.");
+        } else {
+            double maxCat = categoryTotals.values().stream().max(Double::compare).orElse(0.0);
+            System.out.println("Category             | Spent        | Trend");
+            System.out.println("---------------------+--------------+-------------------------");
+            for (java.util.Map.Entry<String, Double> entry : categoryTotals.entrySet().stream()
+                .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                .toList()) {
+                
+                int bLen = 0;
+                if (maxCat > 0) {
+                    bLen = (int) Math.round((entry.getValue() / maxCat) * 20);
+                }
+                if (entry.getValue() > 0 && bLen == 0) {
+                    bLen = 1;
+                }
+                String cBar = "▓".repeat(bLen);
+                System.out.printf("%-20s | $ %10.2f | %-20s%n", entry.getKey(), entry.getValue(), cBar);
+            }
+        }
+
+        System.out.println();
+        System.out.println("=== ANNUAL TOTALS ===");
+        System.out.println();
+        System.out.printf("Total Budget:      $%.2f%n", annualBudget);
+        System.out.printf("Total Spent:       $%.2f%n", annualSpent);
+        System.out.printf("Net Balance:       $%.2f%n", annualBudget - annualSpent);
+        System.out.printf("Average Monthly:   $%.2f%n", annualSpent / 12.0);
+        System.out.println(LINE);
     }
 }

@@ -7,6 +7,7 @@ import seedu.duke.model.ExpenseList;
 import seedu.duke.ui.Ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.time.LocalDate;
 
 public class DeleteCommandTest {
     private ExpenseList expenseList;
@@ -16,8 +17,9 @@ public class DeleteCommandTest {
     public void setUp() {
         expenseList = new ExpenseList();
         ui = new Ui();
-        expenseList.addExpense(new Expense("Lunch", 10.00, null, null));
-        expenseList.addExpense(new Expense("Dinner", 20.00, null, null));
+        expenseList.addExpense(new Expense("Lunch", 10.00, "Food", LocalDate.of(2026, 3, 10)));
+        expenseList.addExpense(new Expense("Dinner", 20.00, "Food", LocalDate.of(2026, 3, 11)));
+        expenseList.addExpense(new Expense("Taxi", 15.00, "Transport", LocalDate.of(2026, 3, 10)));
     }
 
     @Test
@@ -45,6 +47,24 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(ui, 0);
         deleteCommand.execute(expenseList);
 
-        assertEquals(2, expenseList.getSize());
+        assertEquals(3, expenseList.getSize());
+    }
+
+    @Test
+    public void execute_batchDeleteCategory_removesAllMatching() {
+        DeleteCommand deleteCommand = new DeleteCommand(ui, "Food");
+        deleteCommand.execute(expenseList);
+        
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Taxi", expenseList.getExpense(0).getDescription());
+    }
+
+    @Test
+    public void execute_batchDeleteDate_removesAllMatching() {
+        DeleteCommand deleteCommand = new DeleteCommand(ui, LocalDate.of(2026, 3, 10));
+        deleteCommand.execute(expenseList);
+        
+        assertEquals(1, expenseList.getSize());
+        assertEquals("Dinner", expenseList.getExpense(0).getDescription());
     }
 }

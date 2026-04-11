@@ -1,11 +1,8 @@
 package seedu.duke.command;
 
-import seedu.duke.model.Expense;
 import seedu.duke.model.ExpenseList;
 import seedu.duke.ui.Ui;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Handles the logic for displaying a per-category spending summary.
@@ -15,22 +12,33 @@ import java.util.Map;
  */
 public class StatisticsCommand extends Command {
 
+    private final Integer year;
+
     /**
-     * Constructs a StatisticsCommand with the given Ui instance.
+     * Constructs a StatisticsCommand without a specific year.
+     * Starts by showing stats for the current year.
      *
      * @param ui The Ui object used to display user-facing messages.
      */
     public StatisticsCommand(Ui ui) {
         super(ui);
-        assert ui != null : "Ui must not be null";
+        this.year = null;
     }
 
     /**
-     * Executes the statistics command by iterating over all expenses,
-     * computing a per-category total using a LinkedHashMap, and displaying
-     * the result via the Ui.
+     * Constructs a StatisticsCommand for a specific year.
      *
-     * <p>An empty list is handled gracefully — the Ui will display a suitable message.</p>
+     * @param ui   The Ui object used to display user-facing messages.
+     * @param year The year to display statistics for.
+     */
+    public StatisticsCommand(Ui ui, int year) {
+        super(ui);
+        this.year = year;
+    }
+
+    /**
+     * Executes the statistics command by generating the yearly dashboard
+     * using the Ui.
      *
      * @param expenseList The list of expenses to analyse.
      */
@@ -38,17 +46,9 @@ public class StatisticsCommand extends Command {
     public void execute(ExpenseList expenseList) {
         assert expenseList != null : "ExpenseList must not be null";
 
-        // LinkedHashMap preserves insertion order so categories appear in first-seen order
-        Map<String, Double> totals = new LinkedHashMap<>();
-
-        for (int i = 0; i < expenseList.getSize(); i++) {
-            Expense expense = expenseList.getExpense(i);
-            String category = expense.getCategory();
-            double current = totals.getOrDefault(category, 0.0);
-            totals.put(category, current + expense.getAmount());
-        }
-
-        ui.showStatistics(totals, expenseList.getSize());
+        int targetYear = this.year != null ? this.year : java.time.LocalDate.now().getYear();
+        
+        ui.showYearlyDashboard(expenseList, targetYear);
     }
 
     /**

@@ -3,6 +3,7 @@ package seedu.duke.parser;
 import seedu.duke.command.AddCommand;
 import seedu.duke.command.BudgetCommand;
 import seedu.duke.command.Command;
+import seedu.duke.command.ClearCommand;
 import seedu.duke.command.DeleteCommand;
 import seedu.duke.command.EditCommand;
 import seedu.duke.command.ExitCommand;
@@ -88,6 +89,13 @@ public class Parser {
         case "delete":
             return parseDeleteCommand(arguments, ui);
 
+        case "clear":
+            if (!arguments.isEmpty()) {
+                ui.showUnknownCommand();
+                return null;
+            }
+            return new ClearCommand(ui);
+
         case "total":
             if (!arguments.isEmpty()) {
                 ui.showUnknownCommand();
@@ -105,18 +113,24 @@ public class Parser {
             return parseBudgetCommand(arguments, ui);
 
         case "sort":
-            if (!arguments.equals("category") && !arguments.equals("date")) {
+            if (!arguments.equals("category") && !arguments.equals("date") && !arguments.equals("amount")) {
                 ui.showSortUsage();
                 return null;
             }
             return new SortCommand(ui, arguments);
 
         case "stats":
-            if (!arguments.isEmpty()) {
-                ui.showUnknownCommand();
-                return null;
+            if (arguments.isEmpty()) {
+                return new StatisticsCommand(ui);
+            } else {
+                try {
+                    int year = Integer.parseInt(arguments);
+                    return new StatisticsCommand(ui, year);
+                } catch (NumberFormatException e) {
+                    ui.showUnknownCommand();
+                    return null;
+                }
             }
-            return new StatisticsCommand(ui);
 
         case "lend":
             return parseLendCommand(arguments, ui);
@@ -263,6 +277,31 @@ public class Parser {
             ui.showDeleteUsage();
             return null;
         }
+
+        String trimmedArgs = arguments.trim();
+
+        if (trimmedArgs.startsWith("/c")) {
+            String category = trimmedArgs.substring(2).trim();
+            if (category.isEmpty() || category.startsWith("/")) {
+                ui.showDeleteUsage();
+                return null;
+            }
+            return new DeleteCommand(ui, category);
+        }
+
+        if (trimmedArgs.startsWith("/da")) {
+            String dateStr = trimmedArgs.substring(3).trim();
+            if (dateStr.isEmpty() || dateStr.startsWith("/")) {
+                ui.showDeleteUsage();
+                return null;
+            }
+            LocalDate date = parseDate(dateStr, ui);
+            if (date == null) {
+                return null;
+            }
+            return new DeleteCommand(ui, date);
+        }
+
         try {
             int index = Integer.parseInt(arguments);
             if (index <= 0) {
