@@ -7,8 +7,6 @@ import seedu.duke.parser.Parser;
 import seedu.duke.ui.Ui;
 
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,15 +18,9 @@ public class StatisticsCommandTest {
 
     private final Ui ui = new Ui();
 
-    /**
-     * Simple container to capture the map passed into showStatistics from an anonymous Ui subclass.
-     * This avoids using a raw-type array (which causes unchecked compiler warnings).
-     */
-    private static class MapHolder {
-        Map<String, Double> value;
+    private static class DashboardHolder {
+        int year = -1;
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private ExpenseList buildList() {
         ExpenseList list = new ExpenseList();
@@ -38,69 +30,55 @@ public class StatisticsCommandTest {
         return list;
     }
 
-    // ── Category totals ───────────────────────────────────────────────────────
-
     @Test
-    public void execute_twoCategories_correctTotals() {
-        MapHolder holder = new MapHolder();
+    public void execute_callsShowYearlyDashboard_withCurrentYear() {
+        DashboardHolder holder = new DashboardHolder();
         Ui capturingUi = new Ui() {
             @Override
-            public void showStatistics(Map<String, Double> totals, int count) {
-                holder.value = new LinkedHashMap<>(totals);
+            public void showYearlyDashboard(ExpenseList list, int year) {
+                holder.year = year;
             }
         };
 
         new StatisticsCommand(capturingUi).execute(buildList());
 
-        assertNotNull(holder.value);
-        assertEquals(2, holder.value.size(), "Should have exactly two categories");
-        assertEquals(30.00, holder.value.get("Food"), 0.001);
-        assertEquals(5.00, holder.value.get("Transport"), 0.001);
+        assertEquals(LocalDate.now().getYear(), holder.year);
     }
 
     @Test
-    public void execute_emptyList_emptyMap() {
-        MapHolder holder = new MapHolder();
+    public void execute_callsShowYearlyDashboard_withSpecificYear() {
+        DashboardHolder holder = new DashboardHolder();
         Ui capturingUi = new Ui() {
             @Override
-            public void showStatistics(Map<String, Double> totals, int count) {
-                holder.value = new LinkedHashMap<>(totals);
+            public void showYearlyDashboard(ExpenseList list, int year) {
+                holder.year = year;
+            }
+        };
+
+        new StatisticsCommand(capturingUi, 2025).execute(buildList());
+
+        assertEquals(2025, holder.year);
+    }
+
+    @Test
+    public void execute_emptyList_doesNotThrow() {
+        DashboardHolder holder = new DashboardHolder();
+        Ui capturingUi = new Ui() {
+            @Override
+            public void showYearlyDashboard(ExpenseList list, int year) {
+                holder.year = year;
             }
         };
 
         new StatisticsCommand(capturingUi).execute(new ExpenseList());
 
-        assertNotNull(holder.value);
-        assertTrue(holder.value.isEmpty(), "Totals map should be empty for an empty expense list");
+        assertEquals(LocalDate.now().getYear(), holder.year);
     }
-
-    @Test
-    public void execute_sameCategory_combinedTotal() {
-        MapHolder holder = new MapHolder();
-        Ui capturingUi = new Ui() {
-            @Override
-            public void showStatistics(Map<String, Double> totals, int count) {
-                holder.value = new LinkedHashMap<>(totals);
-            }
-        };
-
-        ExpenseList list = new ExpenseList();
-        list.addExpense(new Expense("A", 7.00, "Food", null));
-        list.addExpense(new Expense("B", 3.00, "Food", null));
-        new StatisticsCommand(capturingUi).execute(list);
-
-        assertEquals(10.00, holder.value.get("Food"), 0.001);
-        assertEquals(1, holder.value.size());
-    }
-
-    // ── shouldPersist ─────────────────────────────────────────────────────────
 
     @Test
     public void shouldPersist_returnsFalse() {
         assertFalse(new StatisticsCommand(ui).shouldPersist());
     }
-
-    // ── Parser integration ────────────────────────────────────────────────────
 
     @Test
     public void parse_statsCommand_returnsStatisticsCommand() {
@@ -110,8 +88,15 @@ public class StatisticsCommandTest {
     }
 
     @Test
-    public void parse_statsWithExtraArgs_returnsNull() {
-        Command cmd = Parser.parse("stats extra", ui);
+    public void parse_statsWithYearArgs_returnsStatisticsCommand() {
+        Command cmd = Parser.parse("stats 2026", ui);
+        assertNotNull(cmd);
+        assertTrue(cmd instanceof StatisticsCommand);
+    }
+
+    @Test
+    public void parse_statsWithInvalidArgs_returnsNull() {
+        Command cmd = Parser.parse("stats invalid", ui);
         assertNull(cmd);
     }
 }

@@ -67,6 +67,19 @@ public class SortCommandTest {
         assertEquals(0, list.getSize());
     }
 
+    // ── Sort by amount ────────────────────────────────────────────────────────
+
+    @Test
+    public void execute_sortByAmount_highestAmountFirst() {
+        ExpenseList list = buildList();
+        new SortCommand(ui, "amount").execute(list);
+
+        // 15.00 > 3.50 > 1.80
+        assertEquals(15.00, list.getExpense(0).getAmount(), 0.001);
+        assertEquals(3.50, list.getExpense(1).getAmount(), 0.001);
+        assertEquals(1.80, list.getExpense(2).getAmount(), 0.001);
+    }
+
     // ── shouldPersist ─────────────────────────────────────────────────────────
 
     @Test
@@ -86,6 +99,13 @@ public class SortCommandTest {
     @Test
     public void parse_sortDate_returnsSortCommand() {
         Command cmd = Parser.parse("sort date", ui);
+        assertNotNull(cmd);
+        assertTrue(cmd instanceof SortCommand);
+    }
+
+    @Test
+    public void parse_sortAmount_returnsSortCommand() {
+        Command cmd = Parser.parse("sort amount", ui);
         assertNotNull(cmd);
         assertTrue(cmd instanceof SortCommand);
     }

@@ -23,6 +23,10 @@ public class SortCommand extends Command {
     public static final Comparator<Expense> BY_DATE =
             Comparator.comparing(Expense::getDate, Comparator.reverseOrder());
 
+    /** Comparator that sorts expenses by amount (highest first). */
+    public static final Comparator<Expense> BY_AMOUNT =
+            Comparator.comparingDouble(Expense::getAmount).reversed();
+
     private final String sortBy;
 
     /**
@@ -34,8 +38,8 @@ public class SortCommand extends Command {
     public SortCommand(Ui ui, String sortBy) {
         super(ui);
         assert sortBy != null : "sortBy must not be null";
-        assert sortBy.equals("category") || sortBy.equals("date")
-                : "sortBy must be 'category' or 'date'";
+        assert sortBy.equals("category") || sortBy.equals("date") || sortBy.equals("amount")
+                : "sortBy must be 'category', 'date', or 'amount'";
         this.sortBy = sortBy;
     }
 
@@ -49,7 +53,15 @@ public class SortCommand extends Command {
     public void execute(ExpenseList expenseList) {
         assert expenseList != null : "ExpenseList must not be null";
 
-        Comparator<Expense> comparator = sortBy.equals("category") ? BY_CATEGORY : BY_DATE;
+        Comparator<Expense> comparator;
+        if (sortBy.equals("category")) {
+            comparator = BY_CATEGORY;
+        } else if (sortBy.equals("amount")) {
+            comparator = BY_AMOUNT;
+        } else {
+            comparator = BY_DATE;
+        }
+
         expenseList.sortExpenses(comparator);
 
         ui.showSorted(expenseList, sortBy);
