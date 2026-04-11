@@ -472,7 +472,7 @@ public class Parser {
             return null;
         }
         if (amount == 0) {
-            ui.showZeroAmountWarning();
+            ui.showZeroLoanAmountWarning();
             return null;
         }
         if (amount < 0) {
@@ -534,7 +534,9 @@ public class Parser {
 
     /**
      * Parses the argument string for the repay command and returns a RepayCommand.
-     * Expects a single positive integer index with no trailing tokens.
+     * Supports:
+     *   repay INDEX          (full repayment)
+     *   repay INDEX AMOUNT   (partial repayment)
      *
      * @param arguments The portion of user input after the repay keyword.
      * @param ui        The Ui instance used to display error or usage messages.
@@ -547,7 +549,7 @@ public class Parser {
         }
 
         String[] tokens = arguments.split("\\s+");
-        if (tokens.length > 1) {
+        if (tokens.length > 2) {
             ui.showRepayUsage();
             return null;
         }
@@ -561,12 +563,26 @@ public class Parser {
         }
 
         if (index <= 0) {
-            ui.showInvalidIndex();
+            ui.showInvalidRepayIndex();
             return null;
         }
 
+        Double amount = null;
+        if (tokens.length == 2) {
+            try {
+                amount = Double.parseDouble(tokens[1]);
+            } catch (NumberFormatException e) {
+                ui.showInvalidAmount();
+                return null;
+            }
+            if (amount <= 0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                ui.showInvalidAmount();
+                return null;
+            }
+        }
+
         assert index > 0 : "Repay index should be positive after validation";
-        return new RepayCommand(ui, index);
+        return new RepayCommand(ui, index, amount);
     }
 
 

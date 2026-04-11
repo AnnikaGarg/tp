@@ -11,6 +11,7 @@ public class Loan extends Expense {
 
     private final String borrowerName;
     private boolean isRepaid;
+    private double amountRepaid;
 
     /**
      * Constructs a Loan with the given borrower, amount, and date.
@@ -27,6 +28,7 @@ public class Loan extends Expense {
         assert amount > 0 : "Loan amount must be positive";
         this.borrowerName = borrowerName.trim();
         this.isRepaid = false;
+        this.amountRepaid = 0;
     }
 
     /**
@@ -48,11 +50,66 @@ public class Loan extends Expense {
     }
 
     /**
-     * Marks this loan as repaid.
+     * Returns the total amount repaid so far.
+     *
+     * @return The cumulative repayment amount.
+     */
+    public double getAmountRepaid() {
+        return amountRepaid;
+    }
+
+    /**
+     * Returns the outstanding amount still owed.
+     *
+     * @return The remaining balance (original amount minus amount repaid).
+     */
+    public double getOutstandingAmount() {
+        return getAmount() - amountRepaid;
+    }
+
+    /**
+     * Marks this loan as fully repaid.
      * Can only move from outstanding → repaid (never reversed).
      */
     public void markRepaid() {
+        this.amountRepaid = getAmount();
         this.isRepaid = true;
+    }
+
+    /**
+     * Records a partial repayment. If the repayment covers the remaining
+     * outstanding amount, the loan is automatically marked as fully repaid.
+     *
+     * @param repayment The amount being repaid. Must be positive and
+     *                  not exceed the outstanding amount.
+     * @throws IllegalArgumentException if repayment is invalid.
+     */
+    public void repay(double repayment) {
+        if (repayment <= 0 || Double.isNaN(repayment) || Double.isInfinite(repayment)) {
+            throw new IllegalArgumentException("Repayment amount must be positive");
+        }
+        double outstanding = getOutstandingAmount();
+        if (repayment > outstanding + 0.001) {
+            throw new IllegalArgumentException("Repayment exceeds outstanding amount");
+        }
+        this.amountRepaid += repayment;
+        if (getOutstandingAmount() < 0.01) {
+            this.isRepaid = true;
+            this.amountRepaid = getAmount();
+        }
+    }
+
+    /**
+     * Sets the amount repaid directly (used when loading from storage).
+     *
+     * @param amountRepaid The cumulative amount already repaid.
+     */
+    public void setAmountRepaid(double amountRepaid) {
+        this.amountRepaid = amountRepaid;
+        if (getOutstandingAmount() < 0.01) {
+            this.isRepaid = true;
+            this.amountRepaid = getAmount();
+        }
     }
 
     /**
@@ -62,7 +119,15 @@ public class Loan extends Expense {
      */
     @Override
     public String toString() {
-        String status = isRepaid ? "[Repaid]" : "[Outstanding]";
+        String status;
+        if (isRepaid) {
+            status = "[Repaid]";
+        } else if (amountRepaid > 0) {
+            status = "[Outstanding: $" + String.format("%.2f", getOutstandingAmount())
+                    + " remaining]";
+        } else {
+            status = "[Outstanding]";
+        }
         return borrowerName
                 + " ($" + String.format("%.2f", getAmount()) + ")"
                 + " [Loan]"

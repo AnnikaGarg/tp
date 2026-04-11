@@ -137,7 +137,7 @@ public class Ui {
         System.out.println("  lend AMOUNT BORROWER [/da DATE]           - Record money lent to someone");
         System.out.println("  loans                                     - Show outstanding loans");
         System.out.println("  loans /all                                - Show all loans (incl. repaid)");
-        System.out.println("  repay INDEX                               - Mark a loan as repaid");
+        System.out.println("  repay INDEX [AMOUNT]                      - Repay a loan (fully or partially)");
         System.out.println("  help                                      - Show this help menu");
         System.out.println("  exit                                      - Exit the application");
         System.out.println("  forecast                                  - Show end-of-month spending forecast");
@@ -258,6 +258,16 @@ public class Ui {
     }
 
     /**
+     * Displays an error when the user attempts to lend $0.00.
+     */
+    public void showZeroLoanAmountWarning() {
+        System.out.println(LINE);
+        System.out.println("Oops! Loan amounts must be greater than $0.00.");
+        System.out.println("If you didn't spend any money, there is no need to track it!");
+        System.out.println(LINE);
+    }
+
+    /**
      * Displays an error when the date does not match YYYY-MM-DD or is not a real calendar date.
      */
     public void showInvalidDateFormat() {
@@ -282,6 +292,15 @@ public class Ui {
     public void showInvalidIndex() {
         System.out.println(LINE);
         System.out.println("Invalid index! Use 'list' to see valid numbers.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays an error when the repay index is invalid.
+     */
+    public void showInvalidRepayIndex() {
+        System.out.println(LINE);
+        System.out.println("Invalid index! Use 'loans' to see valid numbers.");
         System.out.println(LINE);
     }
 
@@ -648,7 +667,7 @@ public class Ui {
     }
 
     /**
-     * Displays confirmation after a loan is marked as repaid.
+     * Displays confirmation after a loan is marked as fully repaid.
      *
      * @param loan The loan that was marked repaid.
      */
@@ -656,6 +675,31 @@ public class Ui {
         System.out.println(LINE);
         System.out.println("Great! Marked as repaid:");
         System.out.println("  " + loan);
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays confirmation after a partial repayment is recorded.
+     *
+     * @param loan   The loan that was partially repaid.
+     * @param amount The amount that was repaid.
+     */
+    public void showPartialRepay(Loan loan, double amount) {
+        System.out.println(LINE);
+        System.out.println("Partial repayment of $" + String.format("%.2f", amount) + " recorded:");
+        System.out.println("  " + loan);
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays an error when the repay amount exceeds the outstanding balance.
+     *
+     * @param outstanding The current outstanding balance of the loan.
+     */
+    public void showRepayExceedsOutstanding(double outstanding) {
+        System.out.println(LINE);
+        System.out.println("Repayment amount exceeds the outstanding balance of $"
+                + String.format("%.2f", outstanding) + ".");
         System.out.println(LINE);
     }
 
@@ -707,7 +751,8 @@ public class Ui {
      */
     public void showRepayUsage() {
         System.out.println(LINE);
-        System.out.println("Usage: repay <index>");
+        System.out.println("Usage: repay <index>            (full repayment)");
+        System.out.println("       repay <index> <amount>   (partial repayment)");
         System.out.println("Use 'loans' to see the index of each outstanding loan.");
         System.out.println(LINE);
     }
@@ -763,13 +808,13 @@ public class Ui {
             if (monthlyBudget < 0) {
                 monthlyBudget = 0.0;
             }
-            
+
             double spent = expenseList.getTotalAmountForMonth(ym);
             double remaining = monthlyBudget - spent;
-            
+
             annualBudget += monthlyBudget;
             annualSpent += spent;
-            
+
             long usedPercent = 0;
             if (monthlyBudget > 0) {
                 usedPercent = Math.round((spent / monthlyBudget) * 100);
@@ -784,19 +829,19 @@ public class Ui {
                 barLength = 1;
             }
             String bar = "▒".repeat(barLength);
-            
+
             String monthName = java.time.Month.of(m).name();
             monthName = monthName.substring(0, 1).toUpperCase() + monthName.substring(1).toLowerCase();
             String usedStr = usedPercent + "%";
 
             System.out.printf("%-10s | $ %9.2f | $ %9.2f | $ %9.2f | %5s | %-20s %s%n",
-                              monthName, monthlyBudget, spent, remaining, usedStr, bar, usedStr);
+                    monthName, monthlyBudget, spent, remaining, usedStr, bar, usedStr);
         }
 
         System.out.println();
         System.out.println("=== PER CATEGORY BREAKDOWN ===");
         System.out.println();
-        
+
         java.util.Map<String, Double> categoryTotals = new java.util.LinkedHashMap<>();
         for (int i = 0; i < expenseList.getSize(); i++) {
             Expense e = expenseList.getExpense(i);
@@ -804,7 +849,7 @@ public class Ui {
                 categoryTotals.put(e.getCategory(), categoryTotals.getOrDefault(e.getCategory(), 0.0) + e.getAmount());
             }
         }
-        
+
         if (categoryTotals.isEmpty()) {
             System.out.println("No expenses for this year.");
         } else {
@@ -812,9 +857,9 @@ public class Ui {
             System.out.println("Category             | Spent        | Trend");
             System.out.println("---------------------+--------------+-------------------------");
             for (java.util.Map.Entry<String, Double> entry : categoryTotals.entrySet().stream()
-                .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                .toList()) {
-                
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .toList()) {
+
                 int bLen = 0;
                 if (maxCat > 0) {
                     bLen = (int) Math.round((entry.getValue() / maxCat) * 20);
@@ -843,4 +888,3 @@ public class Ui {
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 }
-

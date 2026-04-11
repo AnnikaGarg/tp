@@ -118,4 +118,42 @@ public class RepayCommandTest {
         assertTrue(out.toString().contains("Invalid loan index"),
                 "Out-of-range index should show error");
     }
+
+    @Test
+    public void execute_partialRepay_reducesOutstandingAmount() {
+        new RepayCommand(ui, 1, 10.00).execute(expenseList);
+        Loan loan = expenseList.getLoan(0);
+        assertFalse(loan.isRepaid());
+        assertEquals(10.00, loan.getAmountRepaid(), 0.0001);
+        assertEquals(10.00, loan.getOutstandingAmount(), 0.0001);
+    }
+
+    @Test
+    public void execute_partialRepayFullAmount_marksAsRepaid() {
+        new RepayCommand(ui, 1, 20.00).execute(expenseList);
+        assertTrue(expenseList.getLoan(0).isRepaid());
+    }
+
+    @Test
+    public void execute_partialRepayExceedsOutstanding_doesNotModifyLoan() {
+        new RepayCommand(ui, 1, 999.00).execute(expenseList);
+        assertFalse(expenseList.getLoan(0).isRepaid());
+        assertEquals(0, expenseList.getLoan(0).getAmountRepaid(), 0.0001);
+    }
+
+    @Test
+    public void execute_multiplePartialRepays_accumulateCorrectly() {
+        new RepayCommand(ui, 1, 5.00).execute(expenseList);
+        new RepayCommand(ui, 1, 10.00).execute(expenseList);
+        Loan loan = expenseList.getLoan(0);
+        assertEquals(15.00, loan.getAmountRepaid(), 0.0001);
+        assertEquals(5.00, loan.getOutstandingAmount(), 0.0001);
+        assertFalse(loan.isRepaid());
+    }
+
+    @Test
+    public void execute_nullAmount_performsFullRepay() {
+        new RepayCommand(ui, 1, null).execute(expenseList);
+        assertTrue(expenseList.getLoan(0).isRepaid());
+    }
 }

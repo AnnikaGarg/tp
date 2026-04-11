@@ -22,7 +22,7 @@ import java.util.TreeMap;
  * so that data persists between sessions.
  * Expense lines use the format: AMOUNT | DATE | CATEGORY | DESCRIPTION.
  * Budget lines use the format: BUDGET | YYYY-MM | AMOUNT.
- * Loan lines use the format: LOAN | AMOUNT | DATE | BORROWER | REPAID.
+ * Loan lines use the format: LOAN | AMOUNT | DATE | BORROWER | REPAID | AMOUNT_REPAID.
  */
 public class Storage {
     private static final String SEPARATOR = " | ";
@@ -34,11 +34,13 @@ public class Storage {
     private static final int IDX_CATEGORY    = 2;
     private static final int IDX_DESCRIPTION = 3;
     /** Number of fields expected on each saved loan line, excluding the LOAN prefix. */
-    private static final int LOAN_FIELD_COUNT  = 4;
+    private static final int LOAN_FIELD_COUNT  = 5;
+    private static final int LOAN_FIELD_COUNT_OLD = 4;
     private static final int LOAN_IDX_AMOUNT   = 0;
     private static final int LOAN_IDX_DATE     = 1;
     private static final int LOAN_IDX_BORROWER = 2;
     private static final int LOAN_IDX_REPAID   = 3;
+    private static final int LOAN_IDX_AMOUNT_REPAID = 4;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter YEAR_MONTH_FORMAT =
@@ -156,6 +158,7 @@ public class Storage {
                                 + SEPARATOR + loan.getDate()
                                 + SEPARATOR + loan.getBorrowerName()
                                 + SEPARATOR + loan.isRepaid()
+                                + SEPARATOR + loan.getAmountRepaid()
                                 + System.lineSeparator()
                 );
             }
@@ -220,7 +223,7 @@ public class Storage {
     private Loan parseLoanLine(String line) {
         String payload = line.substring(("LOAN" + SEPARATOR).length()).trim();
         String[] parts = payload.split(SPLIT_REGEX, LOAN_FIELD_COUNT);
-        if (parts.length != LOAN_FIELD_COUNT) {
+        if (parts.length != LOAN_FIELD_COUNT && parts.length != LOAN_FIELD_COUNT_OLD) {
             ui.showMalformedLineWarning(line);
             logger.warning("Malformed loan line (wrong field count): " + line);
             return null;
@@ -241,6 +244,10 @@ public class Storage {
                 return null;
             }
             Loan loan = new Loan(borrower, amount, date);
+            if (parts.length == LOAN_FIELD_COUNT) {
+                double amountRepaid = Double.parseDouble(parts[LOAN_IDX_AMOUNT_REPAID].trim());
+                loan.setAmountRepaid(amountRepaid);
+            }
             if (isRepaid) {
                 loan.markRepaid();
             }

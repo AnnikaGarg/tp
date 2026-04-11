@@ -416,6 +416,26 @@ public class ParserTest {
     }
 
     @Test
+    public void parse_repayCommandWithValidAmount_returnsRepayCommand() {
+        assertTrue(Parser.parse("repay 1 100", ui) instanceof RepayCommand);
+    }
+
+    @Test
+    public void parse_repayCommandWithZeroAmount_returnsNull() {
+        assertNull(Parser.parse("repay 1 0", ui));
+    }
+
+    @Test
+    public void parse_repayCommandWithNegativeAmount_returnsNull() {
+        assertNull(Parser.parse("repay 1 -5", ui));
+    }
+
+    @Test
+    public void parse_repayCommandWithThreeTokens_returnsNull() {
+        assertNull(Parser.parse("repay 1 50 extra", ui));
+    }
+
+    @Test
     public void parse_findCommandWithCategory_returnsFindCommand() {
         Command command = Parser.parse("find /c Food", ui);
         assertTrue(command instanceof FindCommand);

@@ -429,4 +429,57 @@ public class StorageTest {
 
         assertEquals(0, loadedList.getLoanCount());
     }
+
+    @Test
+    public void saveAndLoad_partiallyRepaidLoan_roundTripMaintainsData() {
+        Path dataFilePath = tempDir.resolve("partial-loan.txt");
+        Storage storage = new Storage(dataFilePath.toString(), new Ui());
+
+        ExpenseList originalList = new ExpenseList();
+        Loan loan = new Loan("John", 200.00, LocalDate.parse("2026-04-01"));
+        loan.repay(75.00);
+        originalList.addLoan(loan);
+        storage.save(originalList);
+
+        ExpenseList loadedList = new ExpenseList();
+        storage.load(loadedList);
+
+        assertEquals(1, loadedList.getLoanCount());
+        Loan loaded = loadedList.getLoan(0);
+        assertFalse(loaded.isRepaid());
+        assertEquals(75.00, loaded.getAmountRepaid(), 0.0001);
+        assertEquals(125.00, loaded.getOutstandingAmount(), 0.0001);
+    }
+
+    @Test
+    public void load_oldFormatLoanLine_loadsWithZeroAmountRepaid() throws IOException {
+        Path dataFilePath = tempDir.resolve("old-format-loan.txt");
+        Files.writeString(dataFilePath, "LOAN | 100.00 | 2026-04-01 | Alice | false\n");
+
+        Storage storage = new Storage(dataFilePath.toString(), new Ui());
+        ExpenseList loadedList = new ExpenseList();
+        storage.load(loadedList);
+
+        assertEquals(1, loadedList.getLoanCount());
+        Loan loaded = loadedList.getLoan(0);
+        assertFalse(loaded.isRepaid());
+        assertEquals(0, loaded.getAmountRepaid(), 0.0001);
+        assertEquals(100.00, loaded.getOutstandingAmount(), 0.0001);
+    }
+
+    @Test
+    public void load_newFormatLoanLine_loadsAmountRepaid() throws IOException {
+        Path dataFilePath = tempDir.resolve("new-format-loan.txt");
+        Files.writeString(dataFilePath, "LOAN | 200.00 | 2026-04-01 | Bob | false | 50.0\n");
+
+        Storage storage = new Storage(dataFilePath.toString(), new Ui());
+        ExpenseList loadedList = new ExpenseList();
+        storage.load(loadedList);
+
+        assertEquals(1, loadedList.getLoanCount());
+        Loan loaded = loadedList.getLoan(0);
+        assertFalse(loaded.isRepaid());
+        assertEquals(50.00, loaded.getAmountRepaid(), 0.0001);
+        assertEquals(150.00, loaded.getOutstandingAmount(), 0.0001);
+    }
 }
