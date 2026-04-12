@@ -31,17 +31,20 @@ Below is a simplified class diagram showing how the `Ui` component is used by th
 
 ### Delete Feature
 
-The delete feature allows users to remove an existing expense from their tracking list by providing its 1-based index (e.g., `delete 1`).
+The delete feature allows users to remove expenses from their tracking list. It supports three modes: deletion by index (e.g., `delete 1`), batch deletion by category (e.g., `delete /c Food`), and batch deletion by date (e.g., `delete /da 2026-03-10`).
 
 **How it works:**
 
-The user types `delete` followed by a single positive integer representing the expense's index.
+The user types `delete` followed by either a single positive integer, `/c CATEGORY`, or `/da YYYY-MM-DD`.
 
 **Implementation:**
 
-`Parser.parseDeleteCommand()` splits the input string. It first verifies there is exactly one argument and then attempts to parse it into an integer. If the argument is missing, non-numeric, or zero/negative, it catches the parsing issues (or returns `null`) and tells `Ui` to show an invalid index message.
+`Parser.parseDeleteCommand()` inspects the argument to determine the deletion mode:
+1. If the argument starts with `/c`, the remaining text is treated as a category name, and a `DeleteCommand` for batch-category deletion is created.
+2. If the argument starts with `/da`, the remaining text is parsed as a date, and a `DeleteCommand` for batch-date deletion is created.
+3. Otherwise, the argument is parsed as an integer index.
 
-A valid integer index results in the instantiation of a `DeleteCommand`.
+A valid input results in the instantiation of a `DeleteCommand`.
 
 Below is the sequence of interactions when the user enters a valid command like `delete 1`:
 
@@ -49,12 +52,12 @@ Below is the sequence of interactions when the user enters a valid command like 
 ![Sequence Diagram for Delete Command](images/delete-expense-diagram.png)
 
 `DeleteCommand.execute()` operates by:
-1. Validating that the given index is greater than `0`.
-2. Attempting to call `ExpenseList.deleteExpense(index - 1)`. 
-3. Catching an `IndexOutOfBoundsException` if the index given is larger than the actual list's bounds, showing an error via the `Ui`.
-4. Successfully removing the item and showing a success message via `Ui.showDeleteExpense()`.
+1. If a **category** filter is set: calling `ExpenseList.deleteByCategory(category)` to remove all matching expenses, then displaying the count via `Ui.showBatchDelete()`.
+2. If a **date** filter is set: calling `ExpenseList.deleteByDate(date)` to remove all matching expenses, then displaying the count via `Ui.showBatchDelete()`.
+3. If an **index** is set: validating the index is greater than `0`, then calling `ExpenseList.deleteExpense(index - 1)`. An `IndexOutOfBoundsException` is caught if the index exceeds the list size.
+4. Showing a success message via `Ui.showDeleteExpense()` on successful index deletion.
 
-Because deletion permanently removes persisted data, `DeleteCommand.shouldPersist()` returns `true`, triggering a file save sequentially.
+Because deletion permanently removes persisted data, `DeleteCommand.shouldPersist()` returns `true`, triggering a file save.
 
 ### Edit Expense Feature
 
@@ -343,11 +346,11 @@ When a new expense is added through `AddCommand`, the application checks `Expens
 
 ### Sort Feature
 
-The sort feature allows users to reorder their expense list either **alphabetically by category** or **chronologically by date** using the command `sort category` or `sort date`.
+The sort feature allows users to reorder their expense list **alphabetically by category**, **chronologically by date**, or **by amount** (highest first) using the command `sort category`, `sort date`, or `sort amount`. The sort argument is case-insensitive (e.g., `sort DATE` works the same as `sort date`).
 
 **How it works:**
 
-The user types `sort` followed by exactly one criterion — `category` or `date`. Any other argument causes the parser to show a usage hint and return `null` without creating a command.
+The user types `sort` followed by exactly one criterion — `category`, `date`, or `amount`. The Parser normalises the argument to lowercase before validation. Any other argument causes the parser to show a usage hint and return `null` without creating a command.
 
 **Implementation:**
 
@@ -356,10 +359,11 @@ Below is the sequence of interactions when the user enters `sort category`:
 *Figure 13: Sequence Diagram detailing the Sort feature execution.*
 ![SortCommand Sequence Diagram](images/sort-uml.png)
 
-`SortCommand` delegates the actual reordering to `ExpenseList.sortExpenses(Comparator)`, which calls `java.util.Collections.sort(expenses, comparator)` in place. Two static `Comparator<Expense>` constants are pre-defined in `SortCommand`:
+`SortCommand` delegates the actual reordering to `ExpenseList.sortExpenses(Comparator)`, which calls `java.util.Collections.sort(expenses, comparator)` in place. Three static `Comparator<Expense>` constants are pre-defined in `SortCommand`:
 
 - `BY_CATEGORY` — uses `String.CASE_INSENSITIVE_ORDER` on `Expense.getCategory()`, with a fallback to sort by date (newest first) using `.thenComparing(Expense::getDate, Comparator.reverseOrder())`.
 - `BY_DATE` — uses the reverse natural order of `LocalDate` via `Expense.getDate()` so the newest expenses appear first.
+- `BY_AMOUNT` — uses `Comparator.comparingDouble(Expense::getAmount).reversed()` so the most expensive items appear first.
 
 Because the sort modifies the list order that is persisted to file, `SortCommand.shouldPersist()` returns `true`, triggering a save after execution.
 
@@ -367,38 +371,97 @@ Because the sort modifies the list order that is persisted to file, `SortCommand
 
 - **Why sort in place?** Mutating the list directly ensures that the sorted order is reflected in subsequent `list` commands and is saved to disk without extra copying.
 - **Why static Comparators?** Declaring them as `public static final` fields on `SortCommand` makes them easily reusable and testable in isolation, without coupling the comparator logic to any single instance.
+- **Why case-insensitive parsing?** Since there are only three valid keywords, there is no ambiguity — accepting `sort DATE` alongside `sort date` removes unnecessary friction for the user.
 - **Alternative considered:** Returning a new sorted list and replacing the existing one. This was rejected because it would require `ExpenseList` to expose a method for replacing all its contents, adding unnecessary surface area to the API.
 
 ---
 
 ### Statistics Feature
 
-The statistics feature provides a per-category breakdown of total spending using the `stats` command.
+The statistics feature provides a yearly dashboard with month-by-month budget vs. spending breakdowns, visual progress bars, and per-category spending totals using the `stats` command.
 
 **How it works:**
 
-The user types `stats` with no arguments. Trailing text is not allowed; if any arguments are detected, the parser shows an unknown-command message and returns `null`.
+The user types `stats` optionally followed by a year (e.g., `stats 2026`). If no year is provided, the current year is used. Any non-numeric argument causes the parser to show an unknown-command message and return `null`.
 
 **Implementation:**
 
-Below is the sequence of interactions when the user enters `stats`:
+Below is the sequence of interactions when the user enters `stats 2026`:
 
 *Figure 14: Sequence Diagram detailing the Statistics feature execution.*
 ![StatisticsCommand Sequence Diagram](images/statistics-uml.png)
 
-`StatisticsCommand.execute()` iterates over every expense in the list and accumulates per-category totals into a `LinkedHashMap<String, Double>`. Using a `LinkedHashMap` preserves the **insertion order**, so categories are printed in the order they first appear in the list — giving the output a predictable, intuitive feel.
-
-The final map and expense count are then passed to `Ui.showStatistics()`, which formats each category-total pair as `CategoryName: $X.XX`.
+`StatisticsCommand.execute()` determines the target year (either from the user argument or the current date), then delegates the display to `Ui.showYearlyDashboard(expenseList, year)`. The `Ui` method:
+1. Retrieves all monthly budgets via `ExpenseList.getMonthlyBudgets()`.
+2. For each month of the target year, fetches that month's expenses via `ExpenseList.getMonthlyExpenses(month)`.
+3. Computes per-month totals and renders an ASCII table with visual progress bars (`▒` and `▓`) showing budget utilisation.
+4. Computes per-category spending breakdowns within each month.
 
 Because `stats` is a read-only query, `StatisticsCommand.shouldPersist()` returns `false` — no file write is triggered.
 
 **Design Considerations:**
 
-- **Why `LinkedHashMap` instead of `HashMap`?** A plain `HashMap` has non-deterministic iteration order, which would cause the printed output to vary between runs. `LinkedHashMap` maintains insertion order at negligible extra cost.
-- **Why `TreeMap` was not used?** `TreeMap` would sort categories alphabetically, which is a different concern from counting. Keeping the order user-defined (insertion order) is more intuitive for the `stats` command.
+- **Why delegate dashboard rendering to `Ui`?** The dashboard requires complex ASCII formatting. Keeping this in `Ui` follows the existing separation of concerns where all output formatting lives in the presentation layer.
+- **Why accept an optional year argument?** Users may want to review historical spending data. Defaulting to the current year keeps the common case simple.
 - **Alternative considered:** Computing statistics inside `Ui` itself. This was rejected because it would embed business logic in the presentation layer, violating the separation-of-concerns principle.
 
 
+### Clear Feature
+
+The clear feature allows users to permanently remove all expenses from the list using the `clear` command.
+
+**How it works:**
+
+The user types `clear` with no arguments. A confirmation prompt is shown, and the user must type `confirm` to proceed. Any other input cancels the operation.
+
+**Implementation:**
+
+Below is the sequence of interactions when the user enters `clear`:
+
+*Figure 15: Sequence Diagram detailing the Clear feature execution.*
+![ClearCommand Sequence Diagram](images/clear-command-diagram.png)
+
+`ClearCommand.execute()` operates by:
+1. Displaying a confirmation prompt via `Ui.showClearConfirmationPrompt()`.
+2. Reading the user's response via `Ui.getUserInput()`.
+3. If the user types `confirm` (case-insensitive): recording the original list size, calling `ExpenseList.clearExpenses()`, and displaying a success message via `Ui.showClear()`.
+4. If the user types anything else: displaying a cancellation message via `Ui.showClearCancelled()` and leaving the list untouched.
+
+`ClearCommand.shouldPersist()` returns `true` only if the user confirmed and the list was actually cleared, preventing unnecessary file writes on cancellation.
+
+**Design Considerations:**
+
+- **Why require confirmation?** Clearing all expenses is a destructive, irreversible operation. Requiring the user to type `confirm` prevents accidental data loss.
+- **Why not use a simple yes/no?** Requiring the specific word `confirm` makes it harder to accidentally trigger by mistyping, providing a stronger safety net.
+
+---
+
+### Forecast Feature
+
+The forecast feature predicts end-of-month total spending based on the user's current daily spending rate using the `forecast` command.
+
+**How it works:**
+
+The user types `forecast` with no arguments. Trailing text is rejected.
+
+**Implementation:**
+
+`ForecastCommand.execute()` calculates the following metrics:
+1. **Spent so far:** Total expenses for the current month via `ExpenseList.getTotalAmountForMonth(currentMonth)`.
+2. **Daily burn rate:** `spentSoFar / currentDayOfMonth`.
+3. **Projected total:** `dailyBurnRate × daysInMonth`.
+4. Passes all metrics plus budget information (if set) to `Ui.showForecast()` for display.
+
+If a budget is set for the current month, the forecast UI also warns whether the user is on track to exceed it.
+
+Because forecasting is a read-only query, `ForecastCommand.shouldPersist()` returns `false`.
+
+**Design Considerations:**
+
+- **Why calculate in the command, not in Ui?** The calculation is business logic (daily rates, projections). Keeping it in the command layer follows separation of concerns.
+- **Why use `currentDayOfMonth` as the divisor?** This gives a linear extrapolation. While simple, it is sufficient for a CLI budgeting tool and avoids the complexity of weighted averages or machine learning models.
+
+---
 
 ## Product scope
 

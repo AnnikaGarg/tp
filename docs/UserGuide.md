@@ -81,9 +81,13 @@ Edits an existing expense in your list. You only need to provide the flags for t
 
 
 ### Listing expenses: `list`
-Shows a list of all your recorded expenses. By default, the list is maintained in chronological order with the newest expenses appearing first.
+Shows a list of all your recorded expenses. By default, the list is maintained in chronological order with the newest expenses appearing first. You can optionally filter by a specific month.
 
-**Format:** `list`
+**Format:** `list [YYYY-MM]`
+
+**Examples:**
+* `list` *(Shows all expenses)*
+* `list 2026-03` *(Shows only expenses from March 2026)*
 
 
 ### Calculating overall total: `total`
@@ -93,36 +97,40 @@ Displays the absolute sum of all expenses currently in your list for a quick sna
 
 
 ### Deleting an expense: `delete`
-Removes an expense from your list by its index number.
+Removes an expense from your list by its index number. You can also batch-delete all expenses matching a category or date.
 
-**Format:** `delete INDEX`
+**Format:** `delete INDEX` or `delete /c CATEGORY` or `delete /da YYYY-MM-DD`
 
-**Example:**
+**Examples:**
 * `delete 3` *(Removes the 3rd expense from your list)*
+* `delete /c Food` *(Removes all expenses in the Food category)*
+* `delete /da 2026-03-10` *(Removes all expenses from March 10, 2026)*
 
 
 ### Setting a budget: `budget`
-Sets or views your spending budget.
+Sets or views your spending budget for a specific month. If no month is provided, it defaults to the current month.
 
-**Format:** `budget AMOUNT` (to set)  
-**Format:** `budget` (to view)
+**Format:** `budget [YYYY-MM] AMOUNT` (to set)  
+**Format:** `budget [YYYY-MM]` (to view)
 
 * `AMOUNT` must be a number greater than 0.
-* Setting a budget overwrites any previously set budget.
+* Setting a budget overwrites any previously set budget for that month.
 
 **Behavior:**
 - When a budget is set, SpendSwift tracks your total spending against it.
 - If your total spending exceeds the budget, a warning message will be displayed.
 
 **Viewing Budget:**
-When using `budget` without arguments, SpendSwift shows:
+When using `budget` without an amount, SpendSwift shows:
 - Current budget
 - Total spent
 - Remaining budget (or exceeded amount)
 
 **Examples:**
-* `budget 100`
-* `budget`
+* `budget 100` *(Sets this month's budget to $100)*
+* `budget 2026-05 500` *(Sets May 2026 budget to $500)*
+* `budget` *(Views current month's budget status)*
+* `budget 2026-03` *(Views March 2026 budget status)*
 
 
 ### Finding and filtering expenses: `find`
@@ -145,9 +153,15 @@ Searches your expense list using a keyword and/or filters. All filters are optio
 
 
 ### Viewing statistics: `stats`
-Displays a per-category breakdown of total spending.
+Displays a yearly dashboard with month-by-month budget vs. spending breakdown, visual progress bars, and per-category spending totals.
 
-**Format:** `stats`
+**Format:** `stats [YYYY]`
+
+* If no year is provided, defaults to the current year.
+
+**Examples:**
+* `stats` *(Shows dashboard for current year)*
+* `stats 2026` *(Shows dashboard for 2026)*
 
 
 ### Viewing help: `help`
@@ -157,14 +171,15 @@ Displays a summary of all available commands and their usage formats.
 
 
 ### Sorting expenses: `sort`
-Sorts your recorded expenses. You can organize them alphabetically by category, or chronologically by date (newest first). 
+Sorts your recorded expenses. You can organize them alphabetically by category, chronologically by date (newest first), or by amount (highest first). The sort argument is case-insensitive.
 *Note: When sorting by category, expenses within the same category will automatically fall back to being sorted by date (newest first).*
 
-**Format:** `sort category` or `sort date`
+**Format:** `sort category` or `sort date` or `sort amount`
 
 **Examples:**
 * `sort category`
 * `sort date`
+* `sort amount`
 
 
 ### Tracking money lent: `lend`
@@ -200,6 +215,14 @@ Predicts your end-of-month total spending based on your current daily habits. If
 * Note: This command does not accept any additional trailing text or flags.
 
 
+### Clearing all expenses: `clear`
+Permanently removes all expenses from your list. A confirmation prompt will appear before execution to prevent accidental data loss.
+
+**Format:** `clear`
+
+* You must type `confirm` when prompted to proceed. Typing anything else cancels the operation.
+
+
 ### Exiting the program: `exit`
 Exits the program and ensures all data is safely saved to your hard drive.
 
@@ -219,20 +242,21 @@ Exits the program and ensures all data is safely saved to your hard drive.
 
 ## Command Summary
 
-| Action       | Format, Examples                                                                                                                          |
-|--------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Add**      | `add AMOUNT [/c CATEGORY] [/da YYYY-MM-DD] DESCRIPTION ` <br> e.g., `add 5.50 /c Food Coffee `                                                   |
-| **Edit**     | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00`                                                         |
-| **Delete**   | `delete INDEX` <br> e.g., `delete 3`                                                                                                      |
-| **List**     | `list`                                                                                                                                    |
-| **Find**     | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
-| **Total**    | `total`                                                                                                                                   |
-| **Budget**   | `budget [AMOUNT]` <br> e.g., `budget 100` or `budget`                                                                                     |
-| **Sort**     | `sort category` or `sort date`                                                                                                            |
-| **Stats**    | `stats`                                                                                                                                   |
-| **Lend**     | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice`                                                                           |
-| **Repay**    | `repay INDEX` <br> e.g., `repay 1`                                                                                                        |
-| **Loans**    | `loans` OR `loans /all`                                                                                                                   |
-| **Help**     | `help`                                                                                                                                    |
-| **Forecast** | `forecast`                                                                                                                                |
-| **Exit**     | `exit`                                                                                                                                    |
+| Action | Format, Examples |
+|--------|------------------|
+| **Add** | `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]` <br> e.g., `add 5.50 Coffee /c Food` |
+| **Edit** | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00` |
+| **Delete** | `delete INDEX` or `delete /c CAT` or `delete /da DATE` <br> e.g., `delete 3`, `delete /c Food` |
+| **Clear** | `clear` (requires typing `confirm`) |
+| **List** | `list [YYYY-MM]` <br> e.g., `list` or `list 2026-03` |
+| **Find** | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
+| **Total** | `total` |
+| **Budget** | `budget [YYYY-MM] [AMOUNT]` <br> e.g., `budget 100`, `budget 2026-05 500`, `budget` |
+| **Sort** | `sort category` or `sort date` or `sort amount` |
+| **Stats** | `stats [YYYY]` <br> e.g., `stats` or `stats 2026` |
+| **Lend** | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice` |
+| **Repay** | `repay INDEX [AMOUNT]` <br> e.g., `repay 1` or `repay 1 10.00` |
+| **Loans** | `loans` or `loans /all` |
+| **Forecast** | `forecast` |
+| **Help** | `help` |
+| **Exit** | `exit` |
