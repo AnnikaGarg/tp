@@ -69,6 +69,7 @@ public class SpendSwift {
      * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
+
         new SpendSwift().run();
     }
 }
