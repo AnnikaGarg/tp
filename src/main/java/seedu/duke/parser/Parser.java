@@ -113,11 +113,12 @@ public class Parser {
             return parseBudgetCommand(arguments, ui);
 
         case "sort":
-            if (!arguments.equals("category") && !arguments.equals("date") && !arguments.equals("amount")) {
+            String sortArg = arguments.toLowerCase();
+            if (!sortArg.equals("category") && !sortArg.equals("date") && !sortArg.equals("amount")) {
                 ui.showSortUsage();
                 return null;
             }
-            return new SortCommand(ui, arguments);
+            return new SortCommand(ui, sortArg);
 
         case "stats":
             if (arguments.isEmpty()) {

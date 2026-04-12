@@ -213,7 +213,7 @@ Exits the program and ensures all data is safely saved to your hard drive.
 **A:** SpendSwift automatically creates a `data` folder in the same directory as your `.jar` file. Your expenses are saved inside `data/expenses.txt`.
 
 **Q: How do I transfer my data to another computer?**
-**A:** Simply install Java 11 on the new computer, download the `SpendSwift.jar` file, and copy your `data/expenses.txt` file into the same folder on the new machine. When you launch SpendSwift, it will automatically load your history!
+**A:** Simply install Java 17 on the new computer, download the `SpendSwift.jar` file, and copy your `data/expenses.txt` file into the same folder on the new machine. When you launch SpendSwift, it will automatically load your history!
 
 ---
 

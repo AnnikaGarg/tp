@@ -419,17 +419,35 @@ SpendSwift solves the problem of friction in financial tracking. Most budgeting 
 |v1.0|new user|see usage instructions|refer to them when I forget how to use the application|
 |v1.0|user|add an expense with a description and amount|keep track of what I have spent|
 |v1.0|user|delete an expense by index|remove entries I added by mistake|
+|v1.0|user|list all my expenses|see everything I have spent at a glance|
+|v1.0|user|see my total spending|get a quick snapshot of how much I have spent overall|
 |v2.0|user|assign a category and date to an expense|organise my spending history|
 |v2.0|user|edit an existing expense|correct mistakes without deleting and re-adding entries|
 |v2.0|user|find expenses by keyword|locate specific expenses without scrolling through the entire list|
 |v2.0|user|filter expenses by category, date, or amount|narrow down my spending records to what I need|
 |v2.0|user|see a help menu|quickly recall all available commands and their formats|
 |v2.0|user|have my data saved automatically|not lose my expense history when I close the app|
+|v2.0|user|set a monthly budget|control my spending and stay within a limit|
+|v2.0|user|view my budget status|see how much I have left to spend this month|
+|v2.0|user|be warned when I exceed my budget|take corrective action before overspending|
+|v2.0|user|sort my expenses by category|group similar spending items together for review|
+|v2.0|user|sort my expenses by date|see my most recent expenses first|
+|v2.0|user|sort my expenses by amount|identify my largest expenses quickly|
+|v2.0|user|view spending statistics by category|understand where my money is going|
+|v2.0|user|view a yearly budget dashboard|see month-by-month trends and budget utilisation at a glance|
+|v2.0|user|lend money and track it separately|keep personal loans out of my expense totals|
+|v2.0|user|view outstanding loans|know who still owes me money|
+|v2.0|user|mark a loan as repaid|keep my loan ledger accurate and up to date|
+|v2.0|user|see a spending forecast|know if I am on track to stay within my budget this month|
+|v2.0|user|delete expenses by category|quickly remove all items from a category at once|
+|v2.0|user|delete expenses by date|quickly remove all items from a specific day at once|
+|v2.0|user|clear all expenses|start fresh with a clean expense list|
+|v2.0|user|list expenses for a specific month|review my spending for a particular time period|
 
 ## Non-Functional Requirements
 
 1. **Performance:** The system should respond to any user command within 2 seconds.
-2. **Portability:** The application must work seamlessly across Windows, macOS, and Linux environments, provided Java 11 or higher is installed.
+2. **Portability:** The application must work seamlessly across Windows, macOS, and Linux environments, provided Java 17 or higher is installed.
 3. **Data Integrity:** The application must safely persist data to a local text file (`data/expenses.txt`) and be able to recover or skip corrupted lines without crashing.
 4. **Usability:** A user with average typing speed should be able to log a new expense faster than using a GUI-based mobile application.
 
