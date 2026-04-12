@@ -77,8 +77,8 @@ public class Parser {
             return new HelpCommand(ui);
 
         case "exit":
-            if (!arguments.isEmpty()) {
-                ui.showUnknownCommand();
+            if (!arguments.trim().isEmpty()) {
+                ui.showStrictCommandUsage("exit");
                 return null;
             }
             return new ExitCommand(ui);
@@ -169,6 +169,11 @@ public class Parser {
             return null;
         }
 
+        if (arguments.contains("|")) {
+            ui.showInvalidCharacterWarning();
+            return null;
+        }
+
         String[] firstSplit = arguments.split("\\s+", 2);
         if (firstSplit.length < 2) {
             ui.showAddUsage();
@@ -184,6 +189,11 @@ public class Parser {
                 return null;
             }
 
+            if (amount >= 1_000_000_000_000.00) {
+                ui.showAmountTooLargeWarning();
+                return null;
+            }
+
             if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
                 ui.showInvalidAmount();
                 return null;
@@ -194,6 +204,20 @@ public class Parser {
         }
 
         String workingStr = firstSplit[1].trim();
+
+        int firstC = workingStr.indexOf("/c");
+        int lastC = workingStr.lastIndexOf("/c");
+        if (firstC != -1 && firstC != lastC) {
+            ui.showDuplicateFlagWarning("/c");
+            return null;
+        }
+
+        int firstDa = workingStr.indexOf("/da");
+        int lastDa = workingStr.lastIndexOf("/da");
+        if (firstDa != -1 && firstDa != lastDa) {
+            ui.showDuplicateFlagWarning("/da");
+            return null;
+        }
 
         String category = null;
         if (workingStr.contains("/c")) {

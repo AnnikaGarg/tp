@@ -17,6 +17,9 @@ This section summarizes my specific contributions to the project, including the 
     * **What it does**: Built the foundational skeleton for `SpendSwift`, including the `Parser` logic and the `Command` execution pattern.
     * **Justification**: This established the internal "language" of the app, enabling teammates to build modular features (like `edit`, `total`, or `stats`) that plugged directly into a stable execution loop.
 
+* **Feature**: **Predictive Spending Forecast**
+  * **What it does**: Analyzes current monthly spending, calculates the daily burn rate, and projects the total end-of-month expenditure. It dynamically warns the user if they are trending to exceed their monthly budget.
+ 
 * **Feature**: **Strict Data Validation & Unit Testing**
     * **What it does**: Implemented rigorous validation for `Expense` attributes (blocking zero/negative amounts and future-dated entries) and authored a comprehensive test suite.
     * **Highlights**: Achieved **100% Line and Method coverage** for the `Expense` and `ExpenseList` classes, ensuring the "Model" of our application is bug-free and handles all edge cases (nulls, infinite doubles, etc.).

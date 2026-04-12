@@ -887,4 +887,43 @@ public class Ui {
         System.out.println("Invalid month/year format.");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
+
+    /**
+     * Displays a warning when the user inputs an amount that is too large for the system to safely handle.
+     */
+    public void showAmountTooLargeWarning() {
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Whoa there, high roller! 🤑");
+        System.out.println("Please enter an amount less than $1,000,000,000,000 (One Trillion).");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Displays a warning when the user adds trailing text to strict commands like exit.
+     */
+    public void showStrictCommandUsage(String command) {
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Invalid format! The '" + command + "' command does not take any extra arguments.");
+        System.out.println("Please just type '" + command + "'.");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Displays a warning when the user inputs the restricted pipe character.
+     */
+    public void showInvalidCharacterWarning() {
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Invalid input! The pipe character '|' is reserved for system storage.");
+        System.out.println("Please remove any '|' characters from your description or category.");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Displays a warning when the user provides the same flag more than once.
+     */
+    public void showDuplicateFlagWarning(String flag) {
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Invalid format! You can only use the '" + flag + "' flag once per command.");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
 }
