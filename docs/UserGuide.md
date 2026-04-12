@@ -33,9 +33,9 @@ Before diving into the features, here are a few things to keep in mind regarding
     * *e.g., in `add AMOUNT DESCRIPTION`, `AMOUNT` is a parameter which can be used as `add 5.00 Coffee`.*
 * Items in square brackets `[ ]` are optional.
     * *e.g., `[/c CATEGORY]` can be used as `/c Food` or can be left out entirely.*
-* Parameters with flags (like `/c` or `/da`) can be typed in any order.
-    * *e.g., if the command specifies `[/c CATEGORY] [/da DATE]`, typing `/da 2026-03-24 /c Food` is perfectly acceptable.*
-
+* **Restricted Characters:** The pipe character (`|`) is strictly reserved for internal data saving. Do not use `|` in your descriptions or categories.
+* **Maximum Values:** To prevent floating-point precision errors, the maximum allowable expense amount is $999,999,999,999.99 (Just under 1 Trillion).
+* **No Duplicate Flags:** You may only use a specific flag (like `/c` or `/da`) once per command.
 ---
 
 ## Notes on User Interaction
@@ -55,7 +55,7 @@ These interactions ensure that users receive immediate feedback and guidance whi
 ### Adding an expense: `add`
 Adds a new expense to your tracking list.
 
-**Format:** `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]`
+**Format:** `add AMOUNT [/c CATEGORY] [/da YYYY-MM-DD] DESCRIPTION `
 
 * `AMOUNT` must be a valid number greater than 0.
 * If `/da` (date) is not provided, the expense will default to the current date.
@@ -190,6 +190,15 @@ Displays a comprehensive list of all outstanding debts and money currently lent 
 
 **Format:** `loans` OR `loans /all`
 
+### Forecasting spending: `forecast`
+Predicts your end-of-month total spending based on your current daily habits. If you have a budget set, it will warn you if you are on track to exceed it.
+
+**Format:** `forecast`
+
+* Calculates your average daily spend (burn rate) for the current month.
+* Projects your total expenses for the final day of the month.
+* Note: This command does not accept any additional trailing text or flags.
+
 
 ### Exiting the program: `exit`
 Exits the program and ensures all data is safely saved to your hard drive.
@@ -210,19 +219,20 @@ Exits the program and ensures all data is safely saved to your hard drive.
 
 ## Command Summary
 
-| Action | Format, Examples |
-|--------|------------------|
-| **Add** | `add AMOUNT DESCRIPTION [/c CATEGORY] [/da YYYY-MM-DD]` <br> e.g., `add 5.50 Coffee /c Food` |
-| **Edit** | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00` |
-| **Delete**| `delete INDEX` <br> e.g., `delete 3` |
-| **List** | `list` |
-| **Find** | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
-| **Total**| `total` |
-| **Budget**| `budget [AMOUNT]` <br> e.g., `budget 100` or `budget` |
-| **Sort** | `sort category` or `sort date` |
-| **Stats**| `stats` |
-| **Lend** | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice` |
-| **Repay**| `repay INDEX` <br> e.g., `repay 1` |
-| **Loans**| `loans` OR `loans /all` |
-| **Help** | `help` |
-| **Exit** | `exit` |
+| Action       | Format, Examples                                                                                                                          |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **Add**      | `add AMOUNT [/c CATEGORY] [/da YYYY-MM-DD] DESCRIPTION ` <br> e.g., `add 5.50 /c Food Coffee `                                                   |
+| **Edit**     | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00`                                                         |
+| **Delete**   | `delete INDEX` <br> e.g., `delete 3`                                                                                                      |
+| **List**     | `list`                                                                                                                                    |
+| **Find**     | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
+| **Total**    | `total`                                                                                                                                   |
+| **Budget**   | `budget [AMOUNT]` <br> e.g., `budget 100` or `budget`                                                                                     |
+| **Sort**     | `sort category` or `sort date`                                                                                                            |
+| **Stats**    | `stats`                                                                                                                                   |
+| **Lend**     | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice`                                                                           |
+| **Repay**    | `repay INDEX` <br> e.g., `repay 1`                                                                                                        |
+| **Loans**    | `loans` OR `loans /all`                                                                                                                   |
+| **Help**     | `help`                                                                                                                                    |
+| **Forecast** | `forecast`                                                                                                                                |
+| **Exit**     | `exit`                                                                                                                                    |

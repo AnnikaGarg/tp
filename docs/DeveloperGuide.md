@@ -200,6 +200,16 @@ With the category definitively resolved (either extracted from the numbered list
    * *Pros:* Immediate execution; keeps the `AddCommand` logic simple.
    * *Cons:* Leads to messy, inaccurate financial tracking. Users end up with the majority of their expenses dumped into a useless "Others" category, completely defeating the purpose of a budgeting application. The interactive prompt forces accurate categorization without making the user retype their description and amount.
 
+### Predictive Spending Forecast
+The `forecast` feature allows users to project their end-of-month spending based on current habits.
+
+**Implementation details:**
+The mechanism is contained within `ForecastCommand`. Because forecasting is an analytical action, `ForecastCommand#shouldPersist()` explicitly returns `false`, ensuring no unnecessary I/O operations are triggered.
+
+1. The command fetches the current date using `LocalDate.now()` and extracts the current day and total days in the month.
+2. It queries `ExpenseList#getTotalAmountForMonth(currentMonth)` to get the `spentSoFar` variable.
+3. The formula `(spentSoFar / currentDay) * daysInMonth` is used to calculate the projected total.
+4. A failsafe is included `(currentDay == 0 ? 1 : currentDay)` to ensure that if a user executes the command at the exact start of a new month, the application does not throw an `ArithmeticException` for division by zero.
 ### Find / Filter Feature
 
 The find feature allows users to search and filter their expense list using a keyword and/or a combination of optional flags.
@@ -387,6 +397,8 @@ Because `stats` is a read-only query, `StatisticsCommand.shouldPersist()` return
 - **Why `LinkedHashMap` instead of `HashMap`?** A plain `HashMap` has non-deterministic iteration order, which would cause the printed output to vary between runs. `LinkedHashMap` maintains insertion order at negligible extra cost.
 - **Why `TreeMap` was not used?** `TreeMap` would sort categories alphabetically, which is a different concern from counting. Keeping the order user-defined (insertion order) is more intuitive for the `stats` command.
 - **Alternative considered:** Computing statistics inside `Ui` itself. This was rejected because it would embed business logic in the presentation layer, violating the separation-of-concerns principle.
+
+
 
 ## Product scope
 
