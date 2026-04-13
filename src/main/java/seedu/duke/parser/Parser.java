@@ -720,6 +720,16 @@ public class Parser {
             workingStr = (before + " " + remaining).trim();
         }
 
+        if (amountMin != null && amountMax != null && amountMin > amountMax) {
+            ui.showInvalidAmountRange();
+            return null;
+        }
+
+        if (dateMin != null && dateMax != null && dateMin.isAfter(dateMax)) {
+            ui.showInvalidDateRange();
+            return null;
+        }
+
         String keyword = workingStr.trim();
         boolean hasAnyFilter = categoryFilter != null || dateMin != null
                 || dateMax != null || amountMin != null || amountMax != null

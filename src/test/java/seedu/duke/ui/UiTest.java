@@ -141,7 +141,7 @@ public class UiTest {
         assertTrue(output.contains("list [YYYY-MM]"));
         assertTrue(output.contains("budget [AMOUNT]"));
         assertTrue(output.contains("budget [YYYY-MM] [AMOUNT]"));
-        assertTrue(output.contains("find KEYWORD [/c CAT]"));
+        assertTrue(output.contains("find [KEYWORD] [/c CAT]"));
         assertTrue(output.contains("sort category|date"));
         assertTrue(output.contains("loans /all"));
         assertTrue(output.contains("repay INDEX"));
@@ -303,7 +303,7 @@ public class UiTest {
         results.add(expense);
 
         String usageOutput = captureOutput(ui::showFindUsage);
-        assertTrue(usageOutput.contains("Usage: find KEYWORD [/c CATEGORY] [/dmin DATE]"));
+        assertTrue(usageOutput.contains("Usage: find [KEYWORD] [/c CATEGORY] [/dmin DATE]"));
         assertTrue(usageOutput.contains("find lunch"));
         assertTrue(usageOutput.contains("find /c Food"));
         assertTrue(usageOutput.contains("/sort asc|desc"));

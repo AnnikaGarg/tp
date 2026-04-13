@@ -586,6 +586,26 @@ public class ParserTest {
     }
 
     @Test
+    public void parse_findAminGreaterThanAmax_returnsNull() {
+        assertNull(Parser.parse("find /amin 100 /amax 50", ui));
+    }
+
+    @Test
+    public void parse_findAminEqualsAmax_returnsFindCommand() {
+        assertNotNull(Parser.parse("find /amin 50 /amax 50", ui));
+    }
+
+    @Test
+    public void parse_findDminAfterDmax_returnsNull() {
+        assertNull(Parser.parse("find /dmin 2026-06-01 /dmax 2026-01-01", ui));
+    }
+
+    @Test
+    public void parse_findDminEqualsDmax_returnsFindCommand() {
+        assertNotNull(Parser.parse("find /dmin 2026-03-01 /dmax 2026-03-01", ui));
+    }
+
+    @Test
     public void parse_helpAdd_returnsNull() {
         assertNull(Parser.parse("help add", ui));
     }
