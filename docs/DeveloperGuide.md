@@ -360,10 +360,13 @@ During `load()`, the `Storage` class identifies each line type by prefix or fiel
 
 Malformed or corrupt lines are skipped with a user-visible warning via `Ui.showMalformedLineWarning()` or `Ui.showInvalidAmountLineWarning()`, ensuring the application never crashes on bad data.
 
-Below is the sequence of interactions during load and save:
+Below are the sequence diagrams for the load and save phases:
 
-*Figure 12: Sequence Diagram detailing the Storage load and save phases.*
-![Sequence Diagram for Storage](images/storage-diagram.png)
+*Figure 12a: Sequence Diagram detailing the Storage load phase.*
+![Sequence Diagram for Storage Load](images/storage-load-diagram.png)
+
+*Figure 12b: Sequence Diagram detailing the Storage save phase.*
+![Sequence Diagram for Storage Save](images/storage-save-diagram.png)
 
 During `save()`, the `Storage` class:
 1. Creates the parent directory if it does not exist.
