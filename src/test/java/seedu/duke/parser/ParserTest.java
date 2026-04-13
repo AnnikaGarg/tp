@@ -604,4 +604,19 @@ public class ParserTest {
     public void parse_findDminEqualsDmax_returnsFindCommand() {
         assertNotNull(Parser.parse("find /dmin 2026-03-01 /dmax 2026-03-01", ui));
     }
+
+    @Test
+    public void parse_helpAdd_returnsNull() {
+        assertNull(Parser.parse("help add", ui));
+    }
+
+    @Test
+    public void parse_helpUnknownCommand_returnsNull() {
+        assertNull(Parser.parse("help xyz", ui));
+    }
+
+    @Test
+    public void parse_helpNoArgs_returnsHelpCommand() {
+        assertTrue(Parser.parse("help", ui) instanceof HelpCommand);
+    }
 }

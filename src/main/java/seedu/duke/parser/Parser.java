@@ -70,11 +70,10 @@ public class Parser {
             return parseListCommand(arguments, ui);
 
         case "help":
-            if (!arguments.isEmpty()) {
-                ui.showUnknownCommand();
-                return null;
+            if (arguments.isEmpty()) {
+                return new HelpCommand(ui);
             }
-            return new HelpCommand(ui);
+            return parseHelpCommand(arguments, ui);
 
         case "exit":
             if (!arguments.trim().isEmpty()) {
@@ -823,9 +822,51 @@ public class Parser {
     }
 
     /**
+     * Shows usage help for a specific command by routing to the matching Ui method.
+     *
+     * @param arguments The command name to show help for.
+     * @param ui        The Ui instance used to display the usage message.
+     * @return null always, since this only displays information.
+     */
+    private static Command parseHelpCommand(String arguments, Ui ui) {
+        switch (arguments.toLowerCase()) {
+        case "add":
+            ui.showAddUsage();
+            break;
+        case "delete":
+            ui.showDeleteUsage();
+            break;
+        case "edit":
+            ui.showEditUsage();
+            break;
+        case "find":
+            ui.showFindUsage();
+            break;
+        case "budget":
+            ui.showBudgetUsage();
+            break;
+        case "sort":
+            ui.showSortUsage();
+            break;
+        case "lend":
+            ui.showLendUsage();
+            break;
+        case "loans":
+            ui.showLoansUsage();
+            break;
+        case "repay":
+            ui.showRepayUsage();
+            break;
+        default:
+            ui.showUnknownCommand();
+            break;
+        }
+        return null;
+    }
+
+    /**
      * Parses a date string strictly following the YYYY-MM-DD format.
      * Impossible calendar dates are also rejected.
-     * Calls showInvalidDateFormat and returns null on failure.
      *
      * @param dateStr The raw date token to parse.
      * @param ui      The Ui instance used to display the error message on failure.
