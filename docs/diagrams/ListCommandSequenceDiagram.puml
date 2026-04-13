@@ -1,0 +1,58 @@
+@startuml ListCommandSequenceDiagram
+hide footbox
+
+skinparam defaultFontName Arial
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #555555
+skinparam sequenceParticipantBackgroundColor #FEFEFE
+skinparam sequenceLifeLineBorderColor #777777
+skinparam shadowing false
+
+participant ":SpendSwift" as main #LightCyan
+participant "<<class>> Parser" as parser #D5E8D4
+participant ":ExpenseList" as el #DAE8FC
+participant ":Ui" as ui #FFF9C4
+
+main -> parser : parse("list ...", ui)
+activate parser
+
+note right of parser
+  parseListCommand() does one of two things:
+  - no argument -> new ListCommand(ui, null)
+  - valid YYYY-MM -> new ListCommand(ui, month)
+end note
+
+create participant "c:ListCommand" as cmd #D5E8D4
+parser -> cmd : new ListCommand(ui, month)
+activate cmd
+cmd --> parser
+deactivate cmd
+
+parser --> main : c
+deactivate parser
+
+main -> cmd : execute(expenseList)
+activate cmd
+
+alt month == null [list all expenses]
+    cmd -> ui : showExpenseList(expenseList)
+    activate ui
+    ui --> cmd
+    deactivate ui
+
+else month != null [list expenses for one month]
+    cmd -> el : getMonthlyExpenses(month)
+    activate el
+    el --> cmd : expenses
+    deactivate el
+
+    cmd -> ui : showExpenseList(expenses, month)
+    activate ui
+    ui --> cmd
+    deactivate ui
+end
+
+cmd --> main
+deactivate cmd
+
+@enduml

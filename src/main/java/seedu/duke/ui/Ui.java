@@ -240,7 +240,7 @@ public class Ui {
     }
 
     /**
-     * Displays an error when the amount value is invalid.
+     * Displays an error when the entered amount is not a valid non-negative number.
      */
     public void showInvalidAmount() {
         System.out.println(LINE);
@@ -448,7 +448,7 @@ public class Ui {
     }
 
     /**
-     * Displays an error message when the budget input is invalid.
+     * Displays an error when the budget amount is invalid or not greater than zero.
      */
     public void showInvalidBudget() {
         System.out.println(LINE);
@@ -515,7 +515,7 @@ public class Ui {
      * Displays the expense list after it has been sorted.
      *
      * @param expenseList The sorted list of expenses.
-     * @param sortBy      The criterion used for sorting ("category" or "date").
+     * @param sortBy The criterion used for sorting, such as "category", "date", or "amount".
      */
     public void showSorted(ExpenseList expenseList, String sortBy) {
         System.out.println(LINE);
@@ -759,7 +759,16 @@ public class Ui {
     }
 
     /**
-     * Displays the spending forecast for the current month.
+     * Displays the spending forecast for the current month, including the projected
+     * total and budget status if a monthly budget exists.
+     *
+     * @param month The month for which the forecast is shown.
+     * @param spentSoFar The total amount spent so far in the month.
+     * @param currentDay The current day of the month used for projection.
+     * @param dailyBurnRate The average amount spent per day so far.
+     * @param projectedTotal The projected total spending by the end of the month.
+     * @param hasBudget Whether a budget exists for the month.
+     * @param budget The monthly budget amount, if one exists.
      */
     public void showForecast(java.time.YearMonth month, double spentSoFar, int currentDay,
                              double dailyBurnRate, double projectedTotal,
@@ -775,10 +784,10 @@ public class Ui {
             System.out.printf("  Current Budget: $%.2f\n", budget);
             if (projectedTotal > budget) {
                 double overage = projectedTotal - budget;
-                System.out.printf("  ⚠️ WARNING: At this rate, you will EXCEED your budget by $%.2f!\n", overage);
+                System.out.printf("  WARNING: At this rate, you will EXCEED your budget by $%.2f!\n", overage);
             } else {
                 double remaining = budget - projectedTotal;
-                System.out.printf("  ✅ Great job! You are on track to stay under budget by $%.2f.\n", remaining);
+                System.out.printf("  Great job! You are on track to stay under budget by $%.2f.\n", remaining);
             }
         } else {
             System.out.println("  (No budget set for this month. Use 'budget AMOUNT' to track your goals!)");
@@ -883,6 +892,9 @@ public class Ui {
         System.out.println(LINE);
     }
 
+    /**
+     * Displays an error when the month input does not match the expected YYYY-MM format.
+     */
     public void showInvalidMonthYear() {
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println("Invalid month/year format.");

@@ -1,25 +1,131 @@
-@startuml
-skinparam backgroundColor white
-hide footbox
+@startuml BudgetCommandSequenceDiagram
 
-actor User
-participant ":SpendSwift" as SpendSwift
-participant ":Parser" as Parser
-participant ":BudgetCommand" as BudgetCommand
-participant ":ExpenseList" as ExpenseList
-participant ":Ui" as Ui
+' ============================================================
+' Sequence Diagram — Budget Command (set or view)
+'
+' Two user invocations covered using alt:
+'   budget /m 2026-04 300   → set (or update) a budget
+'   budget /m 2026-04        → view the current budget
+'
+' Parser creates BudgetCommand(ui, month, amount).
+' amount == null means view; amount != null means set/update.
+' shouldPersist() returns true only for set/update.
+' ============================================================
 
-User -> SpendSwift : enter budget command
-SpendSwift -> Parser : parseBudgetCommand(input)
-Parser --> SpendSwift : BudgetCommand
+skinparam defaultFontName Arial
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #555555
+skinparam sequenceParticipantBackgroundColor #FEFEFE
+skinparam sequenceLifeLineBorderColor #777777
+skinparam shadowing false
 
-SpendSwift -> BudgetCommand : execute(expenseList)
+participant ":SpendSwift"       as main   #LightCyan
+participant "<<class>>\nParser" as parser #D5E8D4
+participant ":ExpenseList"      as el     #DAE8FC
+participant ":Ui"               as ui     #FFF9C4
+participant ":Storage"          as store  #F8CECC
 
-alt valid budget amount
-    BudgetCommand -> ExpenseList : setBudget(amount)
-    ExpenseList --> BudgetCommand
-    BudgetCommand -> Ui : showBudgetSet(amount)
-else invalid budget amount
-    BudgetCommand -> Ui : showInvalidBudget()
+main -> parser : parse("budget 2026-04 300", ui)
+activate parser
+
+note right of parser
+  parseBudgetCommand() extracts:
+  month  = 2026-04  (current month if omitted)
+  amount = 300.00   (null if omitted → view mode)
+end note
+
+create participant "c:BudgetCommand" as cmd #D5E8D4
+parser -> cmd : new BudgetCommand(ui, 2026-04, 300.00)
+activate cmd
+cmd --> parser :
+deactivate cmd
+
+parser --> main : c
+deactivate parser
+
+main -> cmd : execute(expenseList)
+activate cmd
+
+alt amount != null  [set / update budget]
+
+    cmd -> el : hasBudget(month)
+    activate el
+    el --> cmd : hasBudget
+    deactivate el
+
+    alt hasBudget == true  [update existing budget]
+        cmd -> el : getBudget(month)
+        activate el
+        el --> cmd : oldBudget
+        deactivate el
+
+        cmd -> el : setBudget(month, 300.00)
+        activate el
+        el --> cmd :
+        deactivate el
+
+        cmd -> ui : showBudgetUpdated(month, oldBudget, 300.00)
+        activate ui
+        ui --> cmd :
+        deactivate ui
+
+    else hasBudget == false  [set new budget]
+        cmd -> el : setBudget(month, 300.00)
+        activate el
+        el --> cmd :
+        deactivate el
+
+        cmd -> ui : showBudgetSet(month, 300.00)
+        activate ui
+        ui --> cmd :
+        deactivate ui
+    end
+
+else amount == null  [view current budget]
+
+    cmd -> el : hasBudget(month)
+    activate el
+    el --> cmd : hasBudget
+    deactivate el
+
+    alt hasBudget == true
+        cmd -> el : getBudget(month)
+        activate el
+        el --> cmd : budget
+        deactivate el
+
+        cmd -> el : getTotalAmountForMonth(month)
+        activate el
+        el --> cmd : spent
+        deactivate el
+
+        cmd -> ui : showBudgetStatus(month, budget, spent)
+        activate ui
+        ui --> cmd :
+        deactivate ui
+
+    else hasBudget == false
+        cmd -> ui : showNoBudgetSet(month)
+        activate ui
+        ui --> cmd :
+        deactivate ui
+    end
+
 end
+
+cmd --> main :
+deactivate cmd
+
+main -> cmd : shouldPersist()
+activate cmd
+cmd --> main
+deactivate cmd
+
+opt amount != null
+    main -> store : save(expenseList)
+    activate store
+    store --> main
+    deactivate store
+end
+
 @enduml

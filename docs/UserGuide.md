@@ -20,7 +20,7 @@ Whether you are a university student tracking daily meals or managing a strict b
 * `help`: Displays a quick summary of all available commands.
 * `add 5.50 Chicken Rice`: Adds a $5.50 expense and prompts you to select a category.
 * `list`: Shows a list of all your recorded expenses.
-* `budget 100`: Sets a spending limit of $100.00.
+* `budget 100`: Sets the current month's budget to $100.00.
 * `exit`: Safely saves your data and exits the application.
 
 ---
@@ -36,15 +36,17 @@ Before diving into the features, here are a few things to keep in mind regarding
 * **Restricted Characters:** The pipe character (`|`) is strictly reserved for internal data saving. Do not use `|` in your descriptions or categories.
 * **Maximum Values:** To prevent floating-point precision errors, the maximum allowable expense amount is $999,999,999,999.99 (Just under 1 Trillion).
 * **No Duplicate Flags:** You may only use a specific flag (like `/c` or `/da`) once per command.
+
 ---
 
 ## Notes on User Interaction
 
 SpendSwift provides interactive feedback to guide users:
 
-- Clear confirmation messages are shown after each command (e.g., adding or deleting expenses)
-- Warning messages are displayed for invalid inputs or exceeded budgets
-- Some commands (such as `add`) may trigger interactive prompts to request additional input
+- Confirmation messages are shown after successful state-changing commands such as adding, editing, deleting, and setting or updating budgets.
+- Warning messages are displayed for invalid inputs and when a monthly budget has been exceeded.
+- Some commands (such as `add`) may trigger interactive prompts to request additional input.
+- Read-only commands such as `budget` and `budget YYYY-MM` display the current budget status without changing saved data.
 
 These interactions ensure that users receive immediate feedback and guidance while using the application.
 
@@ -55,7 +57,7 @@ These interactions ensure that users receive immediate feedback and guidance whi
 ### Adding an expense: `add`
 Adds a new expense to your tracking list.
 
-**Format:** `add AMOUNT [/c CATEGORY] [/da YYYY-MM-DD] DESCRIPTION `
+**Format:** `add AMOUNT [/c CATEGORY] [/da YYYY-MM-DD] DESCRIPTION`
 
 * `AMOUNT` must be a valid number greater than 0.
 * If `/da` (date) is not provided, the expense will default to the current date.
@@ -81,9 +83,15 @@ Edits an existing expense in your list. You only need to provide the flags for t
 
 
 ### Listing expenses: `list`
-Shows a list of all your recorded expenses. By default, the list is maintained in chronological order with the newest expenses appearing first. You can optionally filter by a specific month.
+Shows your recorded expenses. You may list all expenses or only the expenses for a specific month.
 
 **Format:** `list [YYYY-MM]`
+
+**Rules:**
+- If no month is provided, SpendSwift shows all recorded expenses.
+- If `YYYY-MM` is provided, SpendSwift shows only the expenses recorded in that month.
+- `YYYY-MM` must be a valid month in `YYYY-MM` format.
+- The `list` command accepts at most one optional `YYYY-MM` argument.
 
 **Examples:**
 * `list` *(Shows all expenses)*
@@ -107,30 +115,58 @@ Removes an expense from your list by its index number. You can also batch-delete
 * `delete /da 2026-03-10` *(Removes all expenses from March 10, 2026)*
 
 
-### Setting a budget: `budget`
-Sets or views your spending budget for a specific month. If no month is provided, it defaults to the current month.
+### Setting and viewing a monthly budget: `budget`
+Sets, updates, or views a monthly spending budget.
 
-**Format:** `budget [YYYY-MM] AMOUNT` (to set)  
-**Format:** `budget [YYYY-MM]` (to view)
+**Format:**
+- `budget`
+- `budget AMOUNT`
+- `budget YYYY-MM`
+- `budget YYYY-MM AMOUNT`
 
-* `AMOUNT` must be a number greater than 0.
-* Setting a budget overwrites any previously set budget for that month.
+**What each format does:**
+- `budget`  
+  Shows the budget details for the **current month**.
+- `budget AMOUNT`  
+  Sets or updates the budget for the **current month**.
+- `budget YYYY-MM`  
+  Shows the budget details for the specified month.
+- `budget YYYY-MM AMOUNT`  
+  Sets or updates the budget for the specified month.
 
-**Behavior:**
-- When a budget is set, SpendSwift tracks your total spending against it.
-- If your total spending exceeds the budget, a warning message will be displayed.
+**Rules:**
+- `AMOUNT` must be a valid number greater than 0.
+- `YYYY-MM` must be a valid month in `YYYY-MM` format.
+- The command accepts at most two arguments after `budget`.
+- If a budget already exists for that month, setting a new one overwrites the old value.
+- Budgets are tracked separately for each month.
+- Budget amounts are displayed to 2 decimal places in user-facing messages.
+- If more than 2 decimal places are entered, the displayed value is rounded accordingly.
 
-**Viewing Budget:**
-When using `budget` without an amount, SpendSwift shows:
-- Current budget
-- Total spent
-- Remaining budget (or exceeded amount)
+**Invalid input handling:**
+- If the month argument is invalid, SpendSwift shows the budget usage message.
+- If the command contains too many arguments, SpendSwift shows the budget usage message.
+- If an amount is provided in a valid budget-setting form but is invalid, SpendSwift shows: `Budget must be a number greater then 0.`
+- If `AMOUNT` is not greater than 0, SpendSwift shows: `Budget must be a number greater then 0.`
+
+**When viewing a budget:**
+- If a budget has been set for that month, SpendSwift shows:
+  - the budget amount
+  - the total amount spent in that month
+  - the remaining budget, or how much the budget has been exceeded by
+- If no budget has been set for that month, SpendSwift tells you that no budget exists for that month.
+
+**When setting a budget:**
+- SpendSwift sets the budget for the target month.
+- If a budget already existed for that month, SpendSwift shows an update message with the old and new values.
+- If spending for that month already exceeds the newly set budget, SpendSwift immediately shows a budget-exceeded warning.
+- Budget values shown in confirmations and warnings are formatted to 2 decimal places.
 
 **Examples:**
-* `budget 100` *(Sets this month's budget to $100)*
-* `budget 2026-05 500` *(Sets May 2026 budget to $500)*
-* `budget` *(Views current month's budget status)*
-* `budget 2026-03` *(Views March 2026 budget status)*
+* `budget` *(Shows the current month's budget details)*
+* `budget 100` *(Sets the current month's budget to $100.00)*
+* `budget 2026-05` *(Shows May 2026's budget details)*
+* `budget 2026-05 500` *(Sets May 2026's budget to $500.00)*
 
 
 ### Finding and filtering expenses: `find`
@@ -248,10 +284,10 @@ Exits the program and ensures all data is safely saved to your hard drive.
 | **Edit** | `edit INDEX [/a VAL] [/de DESC] [/c CAT] [/da DATE]` <br> e.g., `edit 1 /a 15.00` |
 | **Delete** | `delete INDEX` or `delete /c CAT` or `delete /da DATE` <br> e.g., `delete 3`, `delete /c Food` |
 | **Clear** | `clear` (requires typing `confirm`) |
-| **List** | `list [YYYY-MM]` <br> e.g., `list` or `list 2026-03` |
+| **List** | `list [YYYY-MM]` <br> e.g., `list`, `list 2026-03` |
 | **Find** | `find [KEYWORD] [/c CAT] [/dmin DATE] [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc\|desc]` <br> e.g., `find coffee /c Food /sort desc` |
 | **Total** | `total` |
-| **Budget** | `budget [YYYY-MM] [AMOUNT]` <br> e.g., `budget 100`, `budget 2026-05 500`, `budget` |
+| **Budget** | `budget`, `budget AMOUNT`, `budget YYYY-MM`, or `budget YYYY-MM AMOUNT` <br> e.g., `budget`, `budget 100`, `budget 2026-05`, `budget 2026-05 500` |
 | **Sort** | `sort category` or `sort date` or `sort amount` |
 | **Stats** | `stats [YYYY]` <br> e.g., `stats` or `stats 2026` |
 | **Lend** | `lend AMOUNT BORROWER [/da DATE]` <br> e.g., `lend 20.00 Alice` |

@@ -23,6 +23,13 @@ public class ListCommand extends Command {
         this.month = month;
     }
 
+    /**
+     * Executes the list command by displaying expenses through the Ui.
+     * If no month filter was provided, all recorded expenses are shown.
+     * Otherwise, only expenses from the specified month are displayed.
+     *
+     * @param expenseList The expense list whose contents are to be displayed.
+     */
     @Override
     public void execute(ExpenseList expenseList) {
         assert expenseList != null : "ExpenseList should not be null in ListCommand";

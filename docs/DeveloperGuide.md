@@ -8,26 +8,73 @@
 
 ## Design & implementation
 
+This section describes the internal design of SpendSwift and explains how the main components and selected features are implemented.
+
+At a high level, SpendSwift follows a command-based design. `SpendSwift` acts as the entry point of the application and coordinates the overall flow. User input is read through `Ui`, interpreted by `Parser` into a concrete `Command`, executed against `ExpenseList`, and saved through `Storage` when the command changes application state.
+
+The main responsibilities are divided as follows:
+- `Ui` handles all user-facing input and output.
+- `Parser` converts raw user input into the appropriate command object.
+- `Command` subclasses contain feature-specific execution logic.
+- `ExpenseList` stores the in-memory application data.
+- `Storage` loads data from disk on startup and persists changes after mutating commands.
+
+The following subsections describe selected components and features in more detail.
+
 ### Ui Component
 
 The `Ui` component centralises all user-facing input and output in SpendSwift. It is responsible for displaying confirmation messages, warnings, usage hints, summaries, and interactive prompts.
 
-Unlike the business logic classes, `Ui` does not modify application state. Instead, command classes delegate user interaction responsibilities to it. For example, `AddCommand` uses `Ui` to display success messages and category prompts, while `BudgetCommand` uses it to show budget confirmations or invalid-budget warnings.
+Unlike the business logic classes, `Ui` does not modify application state. Instead, command classes delegate user interaction responsibilities to it. For example, `AddCommand` uses `Ui` to display success messages and category prompts, while `BudgetCommand` uses it to show budget confirmations, status displays, and warning messages.
 
 This design improves separation of concerns:
 - command classes remain focused on application logic
 - output formatting is kept in one place
 - user interaction stays consistent across features
 
-Below is a simplified class diagram showing how the `Ui` component is used by the main application flow and command classes:
+Below is a simplified object diagram showing a runtime snapshot of how the `Ui` object is used by other parts of the application:
 
-*Figure 1: Simplified class diagram showing how the `Ui` component interacts with the application flow and command classes.*
-![Ui Component Diagram](images/ui-component-diagram.png)
+*Figure 1: Simplified object diagram showing a runtime snapshot of the `Ui` component and related objects.*
+![Ui Component Object Diagram](images/ui-object-diagram.png)
 
 **Design Considerations:**
 - **Why centralise output in `Ui`?** Centralising output avoids duplicated `System.out.println(...)` logic across commands and makes message formatting easier to maintain.
-- **Why allow `Ui` to read input as well?** The interactive category prompt requires the application to pause and collect additional user input after command parsing. Keeping this responsibility inside `Ui` prevents command classes from dealing directly with low-level console input.
+- **Why allow `Ui` to read input as well?** Some features, such as interactive category selection, require the application to pause and collect additional user input after command parsing. Keeping this responsibility inside `Ui` prevents command classes from dealing directly with low-level console input.
 - **Trade-off:** The `Ui` class contains many specialised methods, which makes it longer. However, this was preferred over spreading presentation logic throughout the codebase.
+
+---
+
+### Add Feature
+
+The add feature allows users to record a new expense with a description, amount, optional category, and optional date.
+
+**How it works:**
+The user enters `add` followed by an amount and a description. The `/c` and `/da` flags may optionally be supplied to specify a category and date respectively.
+
+**Implementation:**
+`Parser.parseAddCommand()` first extracts the mandatory amount, then strips the optional `/c` and `/da` flags from the remaining input. The text left behind becomes the description. This allows the user to provide optional flags in any order without affecting parsing correctness.
+
+A valid command results in the creation of an `AddCommand` object.
+
+Below is the sequence of interactions when the user enters a valid command such as `add 5.50 Coffee /c Food`:
+
+*Figure 2: Sequence Diagram detailing the Add feature execution.*
+![Sequence Diagram for Add Command](images/add-command-sequence-diagram.png)
+
+`AddCommand.execute()` operates by:
+1. Checking whether a category was provided.
+2. Triggering an interactive category prompt via `Ui` if the category is missing.
+3. Creating a new `Expense` object with the resolved fields.
+4. Adding the expense to `ExpenseList`.
+5. Calling `Ui.showAddExpense()` to display a confirmation message.
+6. Checking whether the newly added expense causes the total spending to exceed the budget.
+
+**Design Considerations:**
+- **Why support optional category and date flags?** This keeps the command flexible for both quick entry and detailed record keeping.
+- **Why allow interactive category resolution after parsing?** It reduces friction for users who forget the `/c` flag, while still maintaining accurate categorisation.
+- **Why keep budget checks outside the parser?** Parsing should only interpret user input. Budget validation belongs to the execution stage, after the expense has been created and added.
+
+---
 
 ### Delete Feature
 
@@ -48,7 +95,7 @@ A valid input results in the instantiation of a `DeleteCommand`.
 
 Below is the sequence of interactions when the user enters a valid command like `delete 1`:
 
-*Figure 2: Sequence Diagram detailing the Delete feature execution.*
+*Figure 3: Sequence Diagram detailing the Delete feature execution.*
 ![Sequence Diagram for Delete Command](images/delete-expense-diagram.png)
 
 `DeleteCommand.execute()` operates by:
@@ -58,6 +105,53 @@ Below is the sequence of interactions when the user enters a valid command like 
 4. Showing a success message via `Ui.showDeleteExpense()` on successful index deletion.
 
 Because deletion permanently removes persisted data, `DeleteCommand.shouldPersist()` returns `true`, triggering a file save.
+
+---
+
+### List Feature
+
+The list feature allows users to display either all recorded expenses or only the expenses from a specific month using the `list` command.
+
+**How it works:**
+The user may enter:
+- `list` to display all recorded expenses
+- `list YYYY-MM` to display only the expenses recorded in the specified month
+
+**Implementation:**
+`Parser.parseListCommand()` checks whether an argument was supplied.
+
+1. If no argument is provided, it creates a `ListCommand` with `month == null`.
+2. If an argument is provided, it attempts to parse it into a `YearMonth`.
+3. If parsing fails, `Ui.showInvalidMonthYear()` is called and `null` is returned.
+
+A valid input results in the creation of a `ListCommand` object.
+
+Below is the sequence of interactions when the user enters a valid command such as `list 2026-03`:
+
+*Figure 4: Sequence Diagram detailing the List feature execution.*
+![Sequence Diagram for List Command](images/list-command-sequence-diagram.png)
+
+`ListCommand.execute()` behaves differently depending on whether a month filter was supplied:
+
+1. **No month filter (`month == null`)**
+   - The command calls `Ui.showExpenseList(expenseList)`.
+   - `Ui` prints either:
+      - `Your expense list is currently empty.` if there are no recorded expenses, or
+      - the full expense list otherwise.
+
+2. **Month filter provided (`month != null`)**
+   - The command retrieves the matching expenses using `ExpenseList.getMonthlyExpenses(month)`.
+   - It then calls `Ui.showExpenseList(expenses, month)`.
+   - `Ui` prints either:
+      - `No expenses found for YYYY-MM.` if that month has no matching expenses, or
+      - the filtered expense list otherwise.
+
+**Design Considerations:**
+- **Why use one command for both full and monthly listing?** This keeps the interface compact and intuitive. The optional `YYYY-MM` argument extends the command without introducing a separate command name.
+- **Why keep month parsing in `Parser`?** Determining whether the argument is a valid `YearMonth` is part of command parsing, while the actual display logic belongs in `ListCommand` and `Ui`.
+- **Why let `Ui` handle both full-list and month-filtered output?** This keeps all presentation logic in one place and avoids mixing formatting concerns into the command layer.
+
+---
 
 ### Edit Expense Feature
 
@@ -79,43 +173,13 @@ Once all fields are parsed, an `EditCommand` is constructed with nullable fields
 
 Below is the sequence of interactions when the user enters a valid command like `edit 1 /a 15.0`:
 
-*Figure 3: Sequence Diagram detailing the Edit feature execution.*
+*Figure 5: Sequence Diagram detailing the Edit feature execution.*
 ![Sequence Diagram for Edit Command](images/edit-logic-diagram.png)
 
 In `EditCommand.execute()`, the existing `Expense` at the given index is retrieved, each non-null field replaces the corresponding existing value, and a new `Expense` object is created and written back via `ExpenseList.setExpense()`.
 
 **Design considerations:**
 `Expense` objects are immutable (all fields are `final`), so editing produces a new `Expense` rather than mutating the existing one. An alternative considered was making `Expense` mutable with setter methods, but immutability was preferred to avoid unintended side effects across the codebase.
-
-### Add Feature
-
-The add feature allows users to record a new expense with a description, amount, optional category, and optional date.
-
-**How it works:**
-The user enters `add` followed by an amount and a description. The `/c` and `/da` flags may optionally be supplied to specify a category and date respectively.
-
-**Implementation:**
-`Parser.parseAddCommand()` first extracts the mandatory amount, then strips the optional `/c` and `/da` flags from the remaining input. The text left behind becomes the description. This allows the user to provide optional flags in any order without affecting parsing correctness.
-
-A valid command results in the creation of an `AddCommand` object.
-
-Below is the sequence of interactions when the user enters a valid command such as `add 5.50 Coffee /c Food`:
-
-*Figure 4: Sequence Diagram detailing the Add feature execution.*
-![Sequence Diagram for Add Command](images/add-command-sequence-diagram.png)
-
-`AddCommand.execute()` operates by:
-1. Checking whether a category was provided.
-2. Triggering an interactive category prompt via `Ui` if the category is missing.
-3. Creating a new `Expense` object with the resolved fields.
-4. Adding the expense to `ExpenseList`.
-5. Calling `Ui.showAddExpense()` to display a confirmation message.
-6. Checking whether the newly added expense causes the total spending to exceed the budget.
-
-**Design Considerations:**
-- **Why support optional category and date flags?** This keeps the command flexible for both quick entry and detailed record keeping.
-- **Why allow interactive category resolution after parsing?** It reduces friction for users who forget the `/c` flag, while still maintaining accurate categorisation.
-- **Why keep budget checks outside the parser?** Parsing should only interpret user input. Budget validation belongs to the execution stage, after the expense has been created and added.
 
 ### Category and Date Parsing
 
@@ -136,7 +200,7 @@ The ledger is managed by three specific commands:
 
 Below is the sequence of interactions when the user enters a valid command like `lend 20 Alice`:
 
-*Figure 5: Sequence Diagram detailing the Lend feature execution.*
+*Figure 6: Sequence Diagram detailing the Lend feature execution.*
 ![Sequence Diagram for Lend Command](images/loan-logic-diagram.png)
 
 2. **LoansCommand**: Queries the `Ui` to display the current outstanding balance. It handles the `/all` flag to show both outstanding and settled debts.
@@ -168,7 +232,7 @@ When `AddCommand#execute(ExpenseList)` is invoked, it first evaluates the `categ
 2. It passes this list to `Ui#showCategoryPrompt()`, which formats and prints a numbered list to the terminal.
 3. `AddCommand` then suspends execution by calling `Ui#getUserInput()`, waiting for the user to type their selection.
 
-*Figure 6: Sequence Diagram detailing the UI Interaction phase.*
+*Figure 7: Sequence Diagram detailing the UI Interaction phase.*
 ![Phase 1 Sequence Diagram](images/interactive-category-phase1.png)
 
 #### Phase 2: Dynamic Category Resolution
@@ -176,7 +240,7 @@ Once the user provides an input string, `AddCommand` must determine if the user 
 
 If the user types a new category name (e.g., "Snacks"), `AddCommand` delegates the formatting and storage to `ExpenseList`. The `ExpenseList#addCategory()` method formats the string to Title Case (e.g., "snacks" -> "Snacks") and dynamically inserts it into the master list just above the "Others" category. This ensures "Others" always remains safely at the bottom of the user's UI prompt.
 
-*Figure 7: Sequence Diagram detailing the parsing and dynamic storage of a new category.*
+*Figure 8: Sequence Diagram detailing the parsing and dynamic storage of a new category.*
 ![Phase 2 Sequence Diagram](images/interactive-category-phase2.png)
 
 #### Phase 3: Expense Finalization & Budget Checking
@@ -187,7 +251,7 @@ With the category definitively resolved (either extracted from the numbered list
 3. `Ui#showAddExpense()` is called to print the success confirmation.
 4. Finally, `AddCommand` queries `ExpenseList#isOverBudget()`. If the new expense pushes the total over the user's defined limit, it triggers a warning message via the `Ui`.
 
-*Figure 8: Sequence Diagram detailing the final object creation and budget validation.*
+*Figure 9: Sequence Diagram detailing the final object creation and budget validation.*
 ![Phase 3 Sequence Diagram](images/interactive-category-phase3.png)
 
 
@@ -213,6 +277,9 @@ The mechanism is contained within `ForecastCommand`. Because forecasting is an a
 2. It queries `ExpenseList#getTotalAmountForMonth(currentMonth)` to get the `spentSoFar` variable.
 3. The formula `(spentSoFar / currentDay) * daysInMonth` is used to calculate the projected total.
 4. A failsafe is included `(currentDay == 0 ? 1 : currentDay)` to ensure that if a user executes the command at the exact start of a new month, the application does not throw an `ArithmeticException` for division by zero.
+
+---
+
 ### Find / Filter Feature
 
 The find feature allows users to search and filter their expense list using a keyword and/or a combination of optional flags.
@@ -235,7 +302,7 @@ A `FindCommand` is constructed with all seven parameters (keyword, category, dat
 
 Below is the sequence of interactions when the user enters `find lunch /c Food`:
 
-*Figure 9: Sequence Diagram detailing the Find feature execution.*
+*Figure 10: Sequence Diagram detailing the Find feature execution.*
 ![Sequence Diagram for Find Command](images/find-command-diagram.png)
 
 If `/sort` is specified, `sortMatches()` applies a `Comparator.comparingDouble(Expense::getAmount)` (reversed for `desc`) to the result list before display.
@@ -260,7 +327,7 @@ The user types `help` with no arguments. Trailing text is rejected.
 
 Below is the sequence of interactions when the user enters `help`:
 
-*Figure 10: Sequence Diagram detailing the Help feature execution.*
+*Figure 11: Sequence Diagram detailing the Help feature execution.*
 ![Sequence Diagram for Help Command](images/help-command-diagram.png)
 
 Because help is read-only, `HelpCommand.shouldPersist()` returns `false`.
@@ -275,74 +342,115 @@ The `Storage` class is responsible for reading and writing all application data 
 On startup, `SpendSwift` calls `Storage.load()` to populate the `ExpenseList`. After every state-changing command (where `shouldPersist()` returns `true`), `SpendSwift` calls `Storage.save()` to write the full dataset back to disk.
 
 **Implementation:**
-The data file uses a pipe-delimited format. Three types of lines are supported:
+The data file uses a pipe-delimited format. Four types of lines are supported:
 
 | Line type | Format |
 |-----------|--------|
-| Budget | `BUDGET \| amount` |
+| Budget (current) | `BUDGET \| YYYY-MM \| amount` |
+| Budget (legacy) | `BUDGET \| amount` |
 | Expense (v2.0) | `amount \| date \| category \| description` |
 | Expense (v1.0, legacy) | `amount \| description` |
-| Loan | `LOAN \| amount \| date \| borrower \| repaid` |
+| Loan (current) | `LOAN \| amount \| date \| borrower \| repaid \| amountRepaid` |
+| Loan (legacy) | `LOAN \| amount \| date \| borrower \| repaid` |
 
 During `load()`, the `Storage` class identifies each line type by prefix or field count:
-1. Lines starting with `BUDGET |` are parsed and passed to `ExpenseList.setBudget()`.
-2. Lines starting with `LOAN |` are routed to `parseLoanLine()` and added via `ExpenseList.addLoan()`.
-3. All other lines are parsed by `parseLine()`, which handles both 4-field (v2.0) and 2-field (v1.0 legacy) formats, creating `Expense` objects and adding them via `ExpenseList.addExpense()`.
+1. Lines starting with `BUDGET |` are parsed by `parseBudgetLine()`, which supports both the legacy format `BUDGET | AMOUNT` and the current format `BUDGET | YYYY-MM | AMOUNT`. Parsed budget entries are then stored via `ExpenseList.setBudget(month, budget)`.
+2. Lines starting with `LOAN |` are routed to `parseLoanLine()`, which supports both the legacy 5-field format and the current 6-field format, before being added via `ExpenseList.addLoan()`.
+3. All other lines are parsed by `parseLine()`, which handles both 4-field (v2.0) and 2-field (v1.0 legacy) expense formats, creating `Expense` objects and adding them via `ExpenseList.addExpense()`.
 
-Malformed or corrupt lines are skipped with a user-visible warning via `Ui.showMalformedLineWarning()`, ensuring the application never crashes on bad data.
+Malformed or corrupt lines are skipped with a user-visible warning via `Ui.showMalformedLineWarning()` or `Ui.showInvalidAmountLineWarning()`, ensuring the application never crashes on bad data.
 
 Below is the sequence of interactions during load and save:
 
-*Figure 11: Sequence Diagram detailing the Storage load and save phases.*
+*Figure 12: Sequence Diagram detailing the Storage load and save phases.*
 ![Sequence Diagram for Storage](images/storage-diagram.png)
 
 During `save()`, the `Storage` class:
 1. Creates the parent directory if it does not exist.
-2. Writes the budget line (if set).
+2. Iterates through all stored monthly budgets and writes each one in the format `BUDGET | YYYY-MM | amount`.
 3. Iterates over all expenses, writing each in v2.0 format.
-4. Iterates over all loans, writing each with the `LOAN` prefix.
+4. Iterates over all loans, writing each with the `LOAN` prefix in the format `LOAN | amount | date | borrower | repaid | amountRepaid`.
 
 **Design Considerations:**
-- **Why a single flat file instead of separate files for expenses, loans, and budget?** A single file simplifies atomic saves — either the entire state is written successfully or the previous version remains intact. Splitting across files introduces partial-write risks.
-- **Why backward compatibility with 2-field lines?** Early v1.0 users had existing save files with only `amount | description`. Rather than requiring a migration step, `parseLine()` silently upgrades these to the current format (defaulting category to "Others" and date to today) on the next save cycle.
-- **Why `ResolverStyle.STRICT` for date parsing?** Without strict mode, `LocalDate.parse("2026-02-30")` would silently adjust to Feb 28. Strict mode rejects impossible calendar dates outright, preventing silent data corruption.
+- **Why a single flat file instead of separate files for expenses, loans, and budgets?** A single file simplifies saves — the application writes one complete snapshot of state instead of coordinating multiple files.
+- **Why support legacy formats?** Earlier versions stored expenses in the 2-field format `amount | description`, budgets in the single-value format `BUDGET | amount`, and loans without an `amountRepaid` field. Supporting these older formats avoids forcing users to manually migrate their save files.
+- **Why store budgets per month?** Monthly budgets allow each month’s spending limit to be tracked independently, which better reflects real budgeting behavior than using a single global budget.
+- **Why `ResolverStyle.STRICT` for date parsing?** Without strict mode, impossible calendar dates could be silently adjusted during parsing. Strict mode rejects invalid dates outright, preventing silent data corruption.
 
 ---
 
 ### Input Validation (Strict Commands)
 
-The `list`, `help`, `exit`, and `total` commands do not accept any arguments.
-If trailing text is detected after these keywords, the parser calls `ui.showUnknownCommand()` and returns `null`, preventing silent misinterpretation of user input such as `help something` or `exit now`.
+The `help` and `total` commands do not accept any arguments.
+If trailing text is detected after these keywords, the parser shows an unknown command message and returns `null`.
+
+The `exit` command also does not accept any arguments.
+If trailing text is detected, the parser shows a strict-usage warning and returns `null`.
+
+The `list` command accepts either no arguments or a single `YYYY-MM` argument.
+Any other argument format is rejected.
 
 ### Budget Feature
 
-The budget feature allows users to set a spending limit and monitor their spending against that limit using the `budget` command.
+The budget feature allows users to set, update, and view a **monthly spending budget** using the `budget` command.
 
 **How it works:**
 The user may enter:
-- `budget AMOUNT` to set a budget
-- `budget` to view the current budget status
+- `budget AMOUNT` to set or update the budget for the current month
+- `budget YYYY-MM AMOUNT` to set or update the budget for a specific month
+- `budget YYYY-MM` to view the budget status for a specific month
+- `budget` to view the budget status for the current month
+
+Examples:
+- `budget 300`
+- `budget 2026-04 300`
+- `budget 2026-04`
+- `budget`
 
 **Implementation:**
-`Parser.parseBudgetCommand()` determines whether the command is being used to set a new budget or to view an existing one.
+`Parser.parseBudgetCommand()` extracts up to two arguments from the user input:
+1. a target `YearMonth`
+2. an optional `amount`
 
-If an amount is supplied, a `BudgetCommand` is constructed with that value. During execution, `BudgetCommand.execute()` validates that the amount is greater than `0`. If the amount is invalid, the command delegates to `Ui.showInvalidBudget()` and exits without modifying the stored budget.
+If the month is omitted, the parser defaults to the current month.  
+If the amount is omitted, the command is interpreted as a **view** request.  
+If the amount is present, the command is interpreted as a **set/update** request.
 
-If the amount is valid, the command updates the budget stored in `ExpenseList` and displays a confirmation message using `Ui.showBudgetSet()`.
+A valid command results in the creation of a `BudgetCommand` object.
 
-Below is the sequence of interactions when the user enters a valid command such as `budget 100`:
+Below is the sequence of interactions when the user enters a valid command such as `budget 2026-04 300`:
 
-*Figure 12: Sequence Diagram detailing the Budget feature execution.*
-![Sequence Diagram for Budget Command](images/budget-command-sequence-diagram.png)
+*Figure 13: Sequence Diagram detailing the Budget feature execution.*
+![Sequence Diagram for Budget Command](images/budget-command-sequence-diagram-v2.png)
 
-The current budget is stored in `ExpenseList`, together with the expenses it is evaluated against. This allows `ExpenseList` to compute total spending, remaining budget, and whether the current spending has exceeded the budget.
+`BudgetCommand.execute()` behaves differently depending on whether an amount was supplied:
 
-When a new expense is added through `AddCommand`, the application checks `ExpenseList.isOverBudget()`. If the newly updated total exceeds the stored budget, `Ui.showBudgetExceededWarning()` is triggered.
+1. **Set/update mode (`amount != null`)**
+   - The command first checks whether a budget already exists for the target month using `ExpenseList.hasBudget(month)`.
+   - If a budget already exists, the previous value is retrieved using `ExpenseList.getBudget(month)`.
+   - The new value is then stored using `ExpenseList.setBudget(month, amount)`.
+   - `Ui.showBudgetUpdated(...)` is used when an existing monthly budget is replaced.
+   - `Ui.showBudgetSet(...)` is used when a new monthly budget is created.
+
+2. **View mode (`amount == null`)**
+   - The command checks whether a budget exists for the target month.
+   - If one exists, it retrieves:
+      - the stored monthly budget via `ExpenseList.getBudget(month)`
+      - the total spent in that month via `ExpenseList.getTotalAmountForMonth(month)`
+   - It then displays the current budget usage using `Ui.showBudgetDetails(...)`.
+   - If no budget has been set for that month, `Ui.showBudgetNotSet(month)` is shown instead.
+
+Because only the set/update path changes persisted state, `BudgetCommand.shouldPersist()` returns `true` only when an amount was supplied. Viewing a budget does not trigger a save.
+
+The monthly budgets are stored in `ExpenseList`, together with the expenses they are evaluated against. This allows the application to compute spending totals on a per-month basis and keep each month’s budget independent from the others.
+
+When a new expense is added through `AddCommand`, the application checks whether the total spending for that expense’s month has exceeded the corresponding stored monthly budget. If it has, `Ui.showBudgetExceededWarning()` is triggered.
 
 **Design Considerations:**
-- **Why store the budget in `ExpenseList`?** The budget is tightly coupled to the expense data it is measured against, so storing them together keeps financial state centralised.
+- **Why use month-specific budgets instead of a single global budget?** Spending targets often differ from month to month, so month-scoped budgets better match how users plan their finances.
+- **Why let the same command support both set and view behavior?** This keeps the interface compact and intuitive. The presence or absence of the amount naturally distinguishes the two modes.
+- **Why store budgets in `ExpenseList`?** The budget data is tightly coupled to expense totals and monthly spending queries, so storing them together keeps financial state centralised.
 - **Why validate inside `BudgetCommand`?** Validation belongs to the execution step because the parser’s role is only to interpret command structure, not enforce business rules.
-- **Why not keep budget checking inside `AddCommand` only?** That would scatter financial logic across commands. Centralising the budget state in `ExpenseList` results in cleaner object-oriented design.
 
 ### Sort Feature
 
@@ -356,7 +464,7 @@ The user types `sort` followed by exactly one criterion — `category`, `date`, 
 
 Below is the sequence of interactions when the user enters `sort category`:
 
-*Figure 13: Sequence Diagram detailing the Sort feature execution.*
+*Figure 14: Sequence Diagram detailing the Sort feature execution.*
 ![SortCommand Sequence Diagram](images/sort-uml.png)
 
 `SortCommand` delegates the actual reordering to `ExpenseList.sortExpenses(Comparator)`, which calls `java.util.Collections.sort(expenses, comparator)` in place. Three static `Comparator<Expense>` constants are pre-defined in `SortCommand`:
@@ -388,7 +496,7 @@ The user types `stats` optionally followed by a year (e.g., `stats 2026`). If no
 
 Below is the sequence of interactions when the user enters `stats 2026`:
 
-*Figure 14: Sequence Diagram detailing the Statistics feature execution.*
+*Figure 15: Sequence Diagram detailing the Statistics feature execution.*
 ![StatisticsCommand Sequence Diagram](images/statistics-uml.png)
 
 `StatisticsCommand.execute()` determines the target year (either from the user argument or the current date), then delegates the display to `Ui.showYearlyDashboard(expenseList, year)`. The `Ui` method:
@@ -418,7 +526,7 @@ The user types `clear` with no arguments. A confirmation prompt is shown, and th
 
 Below is the sequence of interactions when the user enters `clear`:
 
-*Figure 15: Sequence Diagram detailing the Clear feature execution.*
+*Figure 16: Sequence Diagram detailing the Clear feature execution.*
 ![ClearCommand Sequence Diagram](images/clear-command-diagram.png)
 
 `ClearCommand.execute()` operates by:
@@ -490,8 +598,8 @@ SpendSwift solves the problem of friction in financial tracking. Most budgeting 
 |v2.0|user|filter expenses by category, date, or amount|narrow down my spending records to what I need|
 |v2.0|user|see a help menu|quickly recall all available commands and their formats|
 |v2.0|user|have my data saved automatically|not lose my expense history when I close the app|
-|v2.0|user|set a monthly budget|control my spending and stay within a limit|
-|v2.0|user|view my budget status|see how much I have left to spend this month|
+|v2.0|user|set a budget for a specific month|control my spending and stay within a monthly limit|
+|v2.0|user|view the budget status for a month|see how much I have left to spend in that month|
 |v2.0|user|be warned when I exceed my budget|take corrective action before overspending|
 |v2.0|user|sort my expenses by category|group similar spending items together for review|
 |v2.0|user|sort my expenses by date|see my most recent expenses first|
@@ -571,19 +679,30 @@ Given below are instructions to test the app manually.
    * *Expected:* An "Unknown command" error is shown.
 
 ### Testing the Budget Feature
-1. **Setting a budget:**
-   * Run: `budget 50`
-   * *Expected:* A confirmation message states the budget is set to $50.00.
-2. **Exceeding the budget:**
-   * Run: `add 60.00 Textbook`
-   * *Expected:* The expense is added, but the UI triggers a "Budget Exceeded" warning message.
-3. **Viewing the current budget:**
-   * Run: `budget`
-   * *Expected:* The current budget, total spent, and remaining budget (or exceeded amount) are displayed.
+1. **Setting a budget for a specific month:**
+   * Run: `budget 2026-04 50`
+   * *Expected:* A confirmation message states that the April 2026 budget is set to $50.00.
 
-4. **Invalid budget input:**
-   * Run: `budget 0`
-   * *Expected:* An invalid budget message is shown and the current budget remains unchanged.
+2. **Updating an existing monthly budget:**
+   * Run: `budget 2026-04 80`
+   * *Expected:* A confirmation message states that the April 2026 budget has been updated from the old value to $80.00.
+
+3. **Viewing the budget for a specific month:**
+   * Run: `budget 2026-04`
+   * *Expected:* The application shows the April 2026 budget, amount spent in April 2026, and the remaining budget (or exceeded amount).
+
+4. **Viewing the budget for the current month:**
+   * Run: `budget`
+   * *Expected:* The application shows the budget status for the current month, or indicates that no budget has been set.
+
+5. **Exceeding a monthly budget:**
+   * Run: `budget 2026-04 20`
+   * Then add expenses dated in April 2026 whose total exceeds $20.00.
+   * *Expected:* A budget exceeded warning is shown when the monthly total passes the configured limit.
+
+6. **Viewing a month with no budget set:**
+   * Run: `budget 2026-05`
+   * *Expected:* A message indicates that no budget has been set for May 2026.
 
 ### Automated Test Coverage
 
