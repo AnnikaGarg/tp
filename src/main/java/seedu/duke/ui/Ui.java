@@ -784,10 +784,10 @@ public class Ui {
             System.out.printf("  Current Budget: $%.2f\n", budget);
             if (projectedTotal > budget) {
                 double overage = projectedTotal - budget;
-                System.out.printf("  ⚠️ WARNING: At this rate, you will EXCEED your budget by $%.2f!\n", overage);
+                System.out.printf("  WARNING: At this rate, you will EXCEED your budget by $%.2f!\n", overage);
             } else {
                 double remaining = budget - projectedTotal;
-                System.out.printf("  ✅ Great job! You are on track to stay under budget by $%.2f.\n", remaining);
+                System.out.printf("  Great job! You are on track to stay under budget by $%.2f.\n", remaining);
             }
         } else {
             System.out.println("  (No budget set for this month. Use 'budget AMOUNT' to track your goals!)");
