@@ -62,6 +62,16 @@ public class EditCommand extends Command {
             return;
         }
 
+        if (newAmount != null && newAmount <= 0) {
+            System.out.println("Invalid amount! You cannot edit an expense to be $0.00 or less.");
+            return;
+        }
+
+        if (newDate != null && (newDate.getYear() < 2000 || newDate.getYear() > 2100)) {
+            System.out.println("Invalid date! Please enter a realistic year (between 2000 and 2100).");
+            return;
+        }
+
         Expense existing = expenseList.getExpense(zeroBasedIndex);
 
         double updatedAmount = (newAmount != null) ? newAmount : existing.getAmount();
