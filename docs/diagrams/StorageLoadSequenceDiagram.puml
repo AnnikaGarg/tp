@@ -28,9 +28,15 @@ Storage -> Storage : open file (data/expenses.txt)
 loop for each line in file
     alt BUDGET line
         Storage -> ExpenseList : setBudget(amount)
+        activate ExpenseList
+        ExpenseList --> Storage
+        deactivate ExpenseList
     else LOAN line
         Storage -> Storage : parseLoanLine(line)
         Storage -> ExpenseList : addLoan(loan)
+        activate ExpenseList
+        ExpenseList --> Storage
+        deactivate ExpenseList
     else Expense line (4-field v2.0)
         Storage -> Storage : parseLine(line)
         create Expense
@@ -39,46 +45,13 @@ loop for each line in file
         Expense --> Storage : expense
         deactivate Expense
         Storage -> ExpenseList : addExpense(expense)
+        activate ExpenseList
+        ExpenseList --> Storage
+        deactivate ExpenseList
     end
 end
 
 Storage --> SpendSwift : (loaded)
 deactivate Storage
-
-== Save Phase (after state-changing command) ==
-
-SpendSwift -> Storage : save(expenseList)
-activate Storage
-
-Storage -> Storage : create parent directory if missing
-
-opt budget is set
-    Storage -> ExpenseList : getBudget()
-    activate ExpenseList
-    ExpenseList --> Storage : budget
-    deactivate ExpenseList
-    Storage -> Storage : write "BUDGET | amount"
-end
-
-loop for each expense
-    Storage -> ExpenseList : getExpense(i)
-    activate ExpenseList
-    ExpenseList --> Storage : expense
-    deactivate ExpenseList
-    Storage -> Storage : write "amount | date | category | desc"
-end
-
-loop for each loan
-    Storage -> ExpenseList : getLoan(i)
-    activate ExpenseList
-    ExpenseList --> Storage : loan
-    deactivate ExpenseList
-    Storage -> Storage : write "LOAN | amount | date | borrower | repaid"
-end
-
-Storage --> SpendSwift : (saved)
-deactivate Storage
-
-User -> User : (done)
 
 @enduml
