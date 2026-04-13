@@ -59,7 +59,7 @@ A valid command results in the creation of an `AddCommand` object.
 Below is the sequence of interactions when the user enters a valid command such as `add 5.50 Coffee /c Food`:
 
 *Figure 2: Sequence Diagram detailing the Add feature execution.*
-![Sequence Diagram for Add Command](images/add-command-sequence-diagram.png)
+![Sequence Diagram for Add Command](images/interactive-category-phase4.png)
 
 `AddCommand.execute()` operates by:
 1. Checking whether a category was provided.
