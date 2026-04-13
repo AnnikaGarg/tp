@@ -262,6 +262,16 @@ public class FindCommandTest {
         assertFalse(output.contains("Coffee"), "Matches keyword but before dmin");
     }
 
+    @Test
+    public void execute_filtersOnly_outputShowsAppliedFilters() {
+        ExpenseList expenseList = buildList();
+        FindCommand cmd = new FindCommand(new Ui(), "", null,
+                null, null, 5.00, null, null);
+        String output = captureOutput(() -> cmd.execute(expenseList));
+        assertTrue(output.contains("applied filters"));
+        assertFalse(output.contains("\"\""));
+    }
+
     // ===== Helper =====
 
     private String captureOutput(Runnable action) {

@@ -249,6 +249,24 @@ public class Ui {
     }
 
     /**
+     * Displays an error when the minimum amount exceeds the maximum amount.
+     */
+    public void showInvalidAmountRange() {
+        System.out.println(LINE);
+        System.out.println("Minimum amount cannot be greater than maximum amount.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays an error when the start date is after the end date.
+     */
+    public void showInvalidDateRange() {
+        System.out.println(LINE);
+        System.out.println("Start date cannot be after end date.");
+        System.out.println(LINE);
+    }
+
+    /**
      * Displays an error when the user attempts to add a $0.00 expense.
      */
     public void showZeroAmountWarning() {
@@ -508,7 +526,10 @@ public class Ui {
         if (categoryFilter != null) {
             return "category [" + categoryFilter + "]";
         }
-        return "\"" + keyword + "\"";
+        if (!keyword.isEmpty()) {
+            return "\"" + keyword + "\"";
+        }
+        return "applied filters";
     }
 
     /**

@@ -584,4 +584,24 @@ public class ParserTest {
     public void parse_lendCommandDateBeforeBorrower_returnsLendCommand() {
         assertTrue(Parser.parse("lend 20.00 /da 2026-04-01 John", ui) instanceof LendCommand);
     }
+
+    @Test
+    public void parse_findAminGreaterThanAmax_returnsNull() {
+        assertNull(Parser.parse("find /amin 100 /amax 50", ui));
+    }
+
+    @Test
+    public void parse_findAminEqualsAmax_returnsFindCommand() {
+        assertNotNull(Parser.parse("find /amin 50 /amax 50", ui));
+    }
+
+    @Test
+    public void parse_findDminAfterDmax_returnsNull() {
+        assertNull(Parser.parse("find /dmin 2026-06-01 /dmax 2026-01-01", ui));
+    }
+
+    @Test
+    public void parse_findDminEqualsDmax_returnsFindCommand() {
+        assertNotNull(Parser.parse("find /dmin 2026-03-01 /dmax 2026-03-01", ui));
+    }
 }
