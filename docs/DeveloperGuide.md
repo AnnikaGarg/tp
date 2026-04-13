@@ -551,32 +551,6 @@ Below is the sequence of interactions when the user enters `clear`:
 
 ---
 
-### Forecast Feature
-
-The forecast feature predicts end-of-month total spending based on the user's current daily spending rate using the `forecast` command.
-
-**How it works:**
-
-The user types `forecast` with no arguments. Trailing text is rejected.
-
-**Implementation:**
-
-`ForecastCommand.execute()` calculates the following metrics:
-1. **Spent so far:** Total expenses for the current month via `ExpenseList.getTotalAmountForMonth(currentMonth)`.
-2. **Daily burn rate:** `spentSoFar / currentDayOfMonth`.
-3. **Projected total:** `dailyBurnRate × daysInMonth`.
-4. Passes all metrics plus budget information (if set) to `Ui.showForecast()` for display.
-
-If a budget is set for the current month, the forecast UI also warns whether the user is on track to exceed it.
-
-Because forecasting is a read-only query, `ForecastCommand.shouldPersist()` returns `false`.
-
-**Design Considerations:**
-
-- **Why calculate in the command, not in Ui?** The calculation is business logic (daily rates, projections). Keeping it in the command layer follows separation of concerns.
-- **Why use `currentDayOfMonth` as the divisor?** This gives a linear extrapolation. While simple, it is sufficient for a CLI budgeting tool and avoids the complexity of weighted averages or machine learning models.
-
----
 
 ## Product scope
 
