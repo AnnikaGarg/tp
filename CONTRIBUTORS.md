@@ -1,9 +1,11 @@
 # Contributors
 
-Display | Name | Github Profile | Homepage
----|:---:|:---:|:---:
-![](https://avatars0.githubusercontent.com/u/22460123?s=100) | Jeffry Lum | [Github](https://github.com/j-lum/) | [Homepage](https://se.kasugano.moe)
-![](https://avatars0.githubusercontent.com/u/1673303?s=100) | Damith C. Rajapakse | [Github](https://github.com/damithc/) | [Homepage](https://www.comp.nus.edu.sg/~damithch/)
-# I would like to join this list. How can I help the project
+| Name | GitHub Profile |
+|:----:|:--------------:|
+| Nishchay Sanghi | [Github](https://github.com/Nishchay2576) |
+| Annika Garg | [Github](https://github.com/annikagarg) |
+| Trijal Srimal | [Github](https://github.com/TrijalSrimal) |
+| Aryan Yadav | [Github](https://github.com/aruyadav13) |
+| Krishna Bajaj | [Github](https://github.com/KrishnaBajaj1506) |
 
-For more information, please refer to our [contributor's guide](https://oss-generic.github.io/process/).
+This project is based on the [AddressBook Level-3 (AB3)](https://se-education.org/addressbook-level3/) project template by [SE-EDU](https://se-education.org/).

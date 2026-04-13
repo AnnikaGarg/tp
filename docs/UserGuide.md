@@ -177,7 +177,8 @@ Searches your expense list using a keyword and/or filters. All filters are optio
 * `KEYWORD` searches across both description and category (case-insensitive).
 * `/c CATEGORY` filters by exact category match.
 * `/dmin` and `/dmax` filter by date range (inclusive, YYYY-MM-DD format).
-* `/amin` and `/amax` filter by amount range (inclusive).
+* `/amin` and `/amax` filter by amount range (inclusive). Minimum must not exceed maximum.
+* `/dmin` must not be after `/dmax`. Reversed ranges are rejected with an error message.
 * `/sort asc` or `/sort desc` sorts results by amount.
 
 **Examples:**
@@ -201,9 +202,14 @@ Displays a yearly dashboard with month-by-month budget vs. spending breakdown, v
 
 
 ### Viewing help: `help`
-Displays a summary of all available commands and their usage formats.
+Displays a summary of all available commands and their usage formats. You can also get usage help for a specific command.
 
-**Format:** `help`
+**Format:** `help` or `help COMMAND`
+
+**Examples:**
+* `help` *(Shows full help menu)*
+* `help add` *(Shows usage for the add command)*
+* `help find` *(Shows usage for the find command)*
 
 
 ### Sorting expenses: `sort`
@@ -294,5 +300,5 @@ Exits the program and ensures all data is safely saved to your hard drive.
 | **Repay** | `repay INDEX [AMOUNT]` <br> e.g., `repay 1` or `repay 1 10.00` |
 | **Loans** | `loans` or `loans /all` |
 | **Forecast** | `forecast` |
-| **Help** | `help` |
+| **Help** | `help` or `help COMMAND` <br> e.g., `help add` |
 | **Exit** | `exit` |

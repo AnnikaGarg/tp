@@ -21,14 +21,22 @@ This section summarizes my specific contributions to the project. My primary foc
         * *Justification:* The original architecture made it difficult for teammates to add new commands without touching the main loop. The refactored pattern lets each command be developed, tested, and merged independently.
     * **Defensive Programming**: Added assertions across all core classes (`Command`, `DeleteCommand`, `Expense`, `ExpenseList`, `Parser`, `Storage`) following CS2113 defensive programming standards.
 
+* **PE-D Bug Fixes**:
+    * Fixed find command to validate `/amin` <= `/amax` and `/dmin` <= `/dmax` ranges (#125, #126, #157)
+    * Fixed find command to display "applied filters" instead of empty `""` when using filter-only searches (#159)
+    * Fixed help text inconsistency where `find KEYWORD` was shown as required instead of optional (#156)
+    * Added per-command help (`help add`, `help find`, etc.) reusing existing Ui usage methods (#122)
+    * Split Storage UML diagram into separate load and save diagrams for PDF readability (#170, #171, #172)
+
 * **Contributions to the UG**:
     * Authored the `find`, `delete`, `budget`, `stats`, and `help` command sections.
     * Expanded the Command Summary table to include all commands.
+    * Documented per-command help syntax and find range validation rules.
 
 * **Contributions to the DG**:
     * Authored the "Design & Implementation" sections for the **Find / Filter Feature**, **Help Feature**, and **Storage & Persistence**.
-    * Created and integrated 3 UML sequence diagrams (FindCommand, HelpCommand, Storage).
-    * Authored manual testing instructions for the Find and Help commands.
+    * Created and integrated 4 UML sequence diagrams (FindCommand, HelpCommand, Storage Load, Storage Save).
+    * Authored manual testing instructions for Find, Help, Sort, Edit, Loan, and Clear commands.
     * Updated User Stories to cover find, filter, help, and persistence.
 
 * **Contributions to Team-based Tasks**:

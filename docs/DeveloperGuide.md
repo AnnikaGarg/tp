@@ -298,6 +298,8 @@ All filters are composable: `find lunch /c Food /amin 5 /sort asc` finds expense
 **Implementation:**
 `Parser.parseFindCommand()` strips each recognised flag from the input string one at a time, using the same `indexOf()`-based algorithm as `parseAddCommand()`. The remaining text after all flags have been extracted becomes the keyword. If neither a keyword nor any filter flag is present, usage help is shown and `null` is returned.
 
+After all flags are extracted, `parseFindCommand()` validates that any amount range (`/amin` <= `/amax`) and date range (`/dmin` <= `/dmax`) are logically consistent. Reversed ranges are rejected with `showInvalidAmountRange()` or `showInvalidDateRange()` and `null` is returned.
+
 A `FindCommand` is constructed with all seven parameters (keyword, category, dateMin, dateMax, amountMin, amountMax, sortOrder). During execution, each expense is tested against four private predicate methods — `matchesCategory()`, `matchesKeyword()`, `matchesDateRange()`, and `matchesAmountRange()` — each of which returns `true` when its corresponding filter is `null` (i.e., not set). This design means all filters are independently optional and composable without any conditional branching in the main loop.
 
 Below is the sequence of interactions when the user enters `find lunch /c Food`:
@@ -317,13 +319,15 @@ Because `find` is a read-only query, `FindCommand.shouldPersist()` returns `fals
 
 ### Help Feature
 
-The help feature displays all available commands and their usage formats.
+The help feature displays all available commands and their usage formats. It also supports per-command help to show usage for a specific command.
 
 **How it works:**
-The user types `help` with no arguments. Trailing text is rejected.
+The user types `help` with no arguments to see the full help menu, or `help COMMAND` (e.g., `help add`) to see usage for a specific command.
 
 **Implementation:**
-`HelpCommand` is one of the simplest commands in the system. It contains no business logic — its `execute()` method delegates entirely to `Ui.showHelp()`, which prints a formatted list of every command, its flags, and a short description.
+When `help` is invoked without arguments, `Parser` creates a `HelpCommand` whose `execute()` method delegates to `Ui.showHelp()`.
+
+When `help` is invoked with a command name, `Parser.parseHelpCommand()` routes the argument to the matching `Ui.showXxxUsage()` method (e.g., `help add` calls `ui.showAddUsage()`). This reuses the existing usage methods that are also shown on input errors, avoiding any code duplication. If the command name is unrecognised, `showUnknownCommand()` is called.
 
 Below is the sequence of interactions when the user enters `help`:
 
@@ -703,6 +707,44 @@ Given below are instructions to test the app manually.
 6. **Viewing a month with no budget set:**
    * Run: `budget 2026-05`
    * *Expected:* A message indicates that no budget has been set for May 2026.
+
+### Testing the Sort Command
+1. **Sort by category:**
+   * Run: `sort category`
+   * *Expected:* Expenses are reordered alphabetically by category.
+2. **Sort by date:**
+   * Run: `sort date`
+   * *Expected:* Expenses are reordered chronologically (newest first).
+3. **Sort by amount:**
+   * Run: `sort amount`
+   * *Expected:* Expenses are reordered by amount (highest first).
+
+### Testing the Edit Command
+1. **Edit amount:**
+   * Run: `edit 1 /a 15.00`
+   * *Expected:* The first expense's amount is updated to $15.00. Before/after is shown.
+2. **Edit with invalid index:**
+   * Run: `edit 0 /a 5.00`
+   * *Expected:* An invalid index error is shown.
+
+### Testing the Loan Commands
+1. **Lend money:**
+   * Run: `lend 20.00 Alice`
+   * *Expected:* Loan is recorded. Confirmation shows loan details.
+2. **View loans:**
+   * Run: `loans`
+   * *Expected:* Outstanding loans are listed.
+3. **Repay a loan:**
+   * Run: `repay 1`
+   * *Expected:* The first outstanding loan is marked as repaid.
+
+### Testing the Clear Command
+1. **Clear all expenses:**
+   * Run: `clear`, then type `confirm` at the prompt.
+   * *Expected:* All expenses are removed. `list` shows an empty list.
+2. **Cancel clear:**
+   * Run: `clear`, then type `no` at the prompt.
+   * *Expected:* Expenses remain unchanged.
 
 ### Automated Test Coverage
 
