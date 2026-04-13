@@ -85,12 +85,36 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_editZeroAmount_updatesAmountToZero() {
+    public void execute_editZeroAmount_expenseUnchanged() {
+        double originalAmount = expenseList.getExpense(0).getAmount();
+
         EditCommand command = new EditCommand(ui, 1, 0.00, null, null, null);
         command.execute(expenseList);
 
-        assertEquals(0.00, expenseList.getExpense(0).getAmount());
+        assertEquals(originalAmount, expenseList.getExpense(0).getAmount());
     }
+
+    @Test
+    public void execute_editNegativeAmount_expenseUnchanged() {
+        double originalAmount = expenseList.getExpense(0).getAmount();
+
+        EditCommand command = new EditCommand(ui, 1, -5.00, null, null, null);
+        command.execute(expenseList);
+
+        assertEquals(originalAmount, expenseList.getExpense(0).getAmount());
+    }
+
+    @Test
+    public void execute_editDateToImpossibleYear_expenseUnchanged() {
+        LocalDate originalDate = expenseList.getExpense(0).getDate();
+        LocalDate badDate = LocalDate.of(0, 1, 1);
+
+        EditCommand command = new EditCommand(ui, 1, null, null, null, badDate);
+        command.execute(expenseList);
+
+        assertEquals(originalDate, expenseList.getExpense(0).getDate());
+    }
+
 
     @Test
     public void execute_indexTooLarge_doesNotModifyList() {
