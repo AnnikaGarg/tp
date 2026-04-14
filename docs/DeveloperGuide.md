@@ -1,5 +1,33 @@
 # Developer Guide
 
+## Table of Contents
+* [Acknowledgements](#acknowledgements)
+* [Design & Implementation](#design--implementation)
+   * [Ui Component](#ui-component)
+   * [Add Feature](#add-feature)
+   * [Delete Feature](#delete-feature)
+   * [List Feature](#list-feature)
+   * [Edit Expense Feature](#edit-expense-feature)
+   * [Category and Date Parsing](#category-and-date-parsing)
+   * [Loan Tracking System](#loan-tracking-system)
+   * [Interactive Category Selection](#interactive-category-selection)
+   * [Predictive Spending Forecast](#predictive-spending-forecast)
+   * [Find / Filter Feature](#find--filter-feature)
+   * [Help Feature](#help-feature)
+   * [Storage & Persistence](#storage--persistence)
+   * [Input Validation (Strict Commands)](#input-validation-strict-commands)
+   * [Budget Feature](#budget-feature)
+   * [Sort Feature](#sort-feature)
+   * [Statistics Feature](#statistics-feature)
+   * [Clear Feature](#clear-feature)
+* [Product Scope](#product-scope)
+   * [Target user profile](#target-user-profile)
+   * [Value proposition](#value-proposition)
+* [User Stories](#user-stories)
+* [Non-Functional Requirements](#non-functional-requirements)
+* [Glossary](#glossary)
+* [Instructions for Manual Testing](#instructions-for-manual-testing)
+
 ## Acknowledgements
 
 * This project is heavily based on the [Duke project template](https://se-education.org/duke/) created by the [SE-EDU initiative](https://se-education.org).

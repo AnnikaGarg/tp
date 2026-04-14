@@ -1,5 +1,30 @@
 # SpendSwift - User Guide
 
+## Table of Contents
+* [Introduction](#introduction)
+* [Quick Start](#quick-start)
+* [Notes about the Command Format](#notes-about-the-command-format)
+* [Notes on User Interaction](#notes-on-user-interaction)
+* [Features](#features)
+  * [Adding an expense: `add`](#adding-an-expense-add)
+  * [Editing an expense: `edit`](#editing-an-expense-edit)
+  * [Listing expenses: `list`](#listing-expenses-list)
+  * [Calculating overall total: `total`](#calculating-overall-total-total)
+  * [Deleting an expense: `delete`](#deleting-an-expense-delete)
+  * [Setting and viewing a monthly budget: `budget`](#setting-and-viewing-a-monthly-budget-budget)
+  * [Finding and filtering expenses: `find`](#finding-and-filtering-expenses-find)
+  * [Viewing statistics: `stats`](#viewing-statistics-stats)
+  * [Viewing help: `help`](#viewing-help-help)
+  * [Sorting expenses: `sort`](#sorting-expenses-sort)
+  * [Tracking money lent: `lend`](#tracking-money-lent-lend)
+  * [Recording a repayment: `repay`](#recording-a-repayment-repay)
+  * [Viewing all loans: `loans`](#viewing-all-loans-loans)
+  * [Forecasting spending: `forecast`](#forecasting-spending-forecast)
+  * [Clearing all expenses: `clear`](#clearing-all-expenses-clear)
+  * [Exiting the program: `exit`](#exiting-the-program-exit)
+* [FAQ](#faq)
+* [Command Summary](#command-summary)
+
 ## Introduction
 
 **SpendSwift** is a desktop app for university students for managing personal finances, optimized for use via a Command Line Interface (CLI). If you can type fast, SpendSwift can log your daily expenses, track your budget, and generate spending statistics faster than traditional GUI-based mobile apps.
