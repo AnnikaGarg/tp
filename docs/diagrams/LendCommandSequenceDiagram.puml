@@ -1,4 +1,8 @@
 @startuml LendCommandSequenceDiagram
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 skinparam defaultFontName Arial
 skinparam sequenceArrowThickness 1.5
 skinparam sequenceParticipantBorderColor #555555

@@ -1,5 +1,4 @@
 @startuml ListCommandSequenceDiagram
-hide footbox
 
 skinparam defaultFontName Arial
 skinparam sequenceArrowThickness 1.5

@@ -1,6 +1,5 @@
 @startuml
 skinparam backgroundColor white
-hide footbox
 
 actor User
 participant ":SpendSwift" as SpendSwift
