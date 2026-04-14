@@ -650,7 +650,7 @@ SpendSwift solves the problem of friction in financial tracking. Most budgeting 
 ## Non-Functional Requirements
 
 1. **Performance:** The system should respond to any user command within 2 seconds.
-2. **Portability:** The application must work seamlessly across Windows, macOS, and Linux environments, provided Java 17 or higher is installed.
+2. **Portability:** The application must work seamlessly across Windows, macOS, and Linux environments, provided Java 17 is installed.
 3. **Data Integrity:** The application must safely persist data to a local text file (`data/expenses.txt`) and be able to recover or skip corrupted lines without crashing.
 4. **Usability:** A user with average typing speed should be able to log a new expense faster than using a GUI-based mobile application.
 
