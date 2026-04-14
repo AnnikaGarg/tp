@@ -415,8 +415,11 @@ During `save()`, the `Storage` class:
 
 ### Input Validation (Strict Commands)
 
-The `help`, `total`, and `forecast` commands do not accept any arguments.
+The `total` and `forecast` commands do not accept any arguments.
 If trailing text is detected after these keywords, the parser shows an unknown command message and returns `null`.
+
+The `help` command accepts either no arguments or a single command name.
+If the supplied command name is unrecognised, the parser shows an unknown command message and returns `null`.
 
 The `exit` command also does not accept any arguments.
 If trailing text is detected, the parser shows a strict-usage warning and returns `null`.
@@ -436,7 +439,7 @@ When `Parser.parse()` receives the `total` command, it constructs a `TotalComman
 
 Below is the sequence of interactions when the user enters `total`:
 
-*Figure: Sequence Diagram detailing the Total feature execution.*
+*Figure : Sequence Diagram detailing the Total feature execution.*
 ![Sequence Diagram for Total Command](images/total-command-sequence-diagram.png)
 
 `TotalCommand.execute()` operates by:
