@@ -25,6 +25,8 @@
 * [FAQ](#faq)
 * [Command Summary](#command-summary)
 
+<div style="page-break-after: always;"></div>
+
 ## Introduction
 
 **SpendSwift** is a desktop app for university students for managing personal finances, optimized for use via a Command Line Interface (CLI). If you can type fast, SpendSwift can log your daily expenses, track your budget, and generate spending statistics faster than traditional GUI-based mobile apps.

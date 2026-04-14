@@ -28,6 +28,8 @@
 * [Glossary](#glossary)
 * [Instructions for Manual Testing](#instructions-for-manual-testing)
 
+<div style="page-break-after: always;"></div>
+
 ## Acknowledgements
 
 * This project is heavily based on the [Duke project template](https://se-education.org/duke/) created by the [SE-EDU initiative](https://se-education.org).
