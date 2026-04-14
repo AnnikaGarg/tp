@@ -1,5 +1,4 @@
 @startuml LendCommandSequenceDiagram
-hide footbox
 skinparam defaultFontName Arial
 skinparam sequenceArrowThickness 1.5
 skinparam sequenceParticipantBorderColor #555555
