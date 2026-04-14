@@ -1,4 +1,6 @@
 @startuml
+hide footbox
+
 skinparam backgroundColor white
 skinparam sequenceMessageAlign center
 
@@ -29,7 +31,7 @@ opt budget is set
     activate ExpenseList
     ExpenseList --> Storage : budget
     deactivate ExpenseList
-    Storage -> Storage : write "BUDGET | amount"
+    Storage -> Storage : write "BUDGET|YYYY-MM|amount"
 end
 
 loop for each expense

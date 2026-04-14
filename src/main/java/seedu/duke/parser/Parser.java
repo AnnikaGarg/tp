@@ -857,6 +857,27 @@ public class Parser {
         case "repay":
             ui.showRepayUsage();
             break;
+        case "list":
+            ui.showListUsage();
+            break;
+        case "total":
+            ui.showTotalUsage();
+            break;
+        case "stats":
+            ui.showStatsUsage();
+            break;
+        case "forecast":
+            ui.showForecastUsage();
+            break;
+        case "clear":
+            ui.showClearUsage();
+            break;
+        case "exit":
+            ui.showExitUsage();
+            break;
+        case "help":
+            ui.showHelpUsage();
+            break;
         default:
             ui.showUnknownCommand();
             break;

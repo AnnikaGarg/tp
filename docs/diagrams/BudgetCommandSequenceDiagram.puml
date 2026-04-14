@@ -1,5 +1,5 @@
 @startuml BudgetCommandSequenceDiagram
-
+hide footbox
 ' ============================================================
 ' Sequence Diagram — Budget Command (set or view)
 '

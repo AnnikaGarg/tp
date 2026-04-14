@@ -1,4 +1,6 @@
 @startuml
+hide footbox
+
 skinparam backgroundColor white
 skinparam sequenceMessageAlign center
 

@@ -1,4 +1,5 @@
 @startuml
+hide footbox
 skinparam backgroundColor white
 
 actor User

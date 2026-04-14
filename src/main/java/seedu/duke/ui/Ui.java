@@ -132,14 +132,14 @@ public class Ui {
         System.out.println("             [/c CATEGORY] [/da DATE]");
         System.out.println("  find [KEYWORD] [/c CAT] [/dmin DATE]      - Find/filter expenses");
         System.out.println("       [/dmax DATE] [/amin AMT] [/amax AMT] [/sort asc|desc]");
-        System.out.println("  sort category|date                        - Sort expenses");
+        System.out.println("  sort category|date|amount                 - Sort expenses");
         System.out.println("  stats                                     - Show spending statistics and graph " +
                 "by category");
         System.out.println("  lend AMOUNT BORROWER [/da DATE]           - Record money lent to someone");
         System.out.println("  loans                                     - Show outstanding loans");
         System.out.println("  loans /all                                - Show all loans (incl. repaid)");
         System.out.println("  repay INDEX [AMOUNT]                      - Repay a loan (fully or partially)");
-        System.out.println("  help [COMMAND]                             - Show help for a command");
+        System.out.println("  help [COMMAND]                            - Show help for a command");
         System.out.println("  exit                                      - Exit the application");
         System.out.println("  forecast                                  - Show end-of-month spending forecast");
         System.out.println("Note: DATE must be in YYYY-MM-DD format (e.g. 2026-03-24).");
@@ -488,7 +488,7 @@ public class Ui {
      */
     public void showInvalidBudget() {
         System.out.println(LINE);
-        System.out.println("Budget must be a number greater then 0.");
+        System.out.println("Budget must be a number greater than 0.");
         System.out.println(LINE);
     }
 
@@ -958,6 +958,82 @@ public class Ui {
         System.out.println("Invalid format! The '" + command + "' command does not take any extra arguments.");
         System.out.println("Please just type '" + command + "'.");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    }
+
+    /**
+     * Displays usage instructions for the list command.
+     */
+    public void showListUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: list");
+        System.out.println("       list <YYYY-MM>");
+        System.out.println("Example: list");
+        System.out.println("Example: list 2026-03");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the total command.
+     */
+    public void showTotalUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: total");
+        System.out.println("Shows the total amount spent across all recorded expenses.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the stats command.
+     */
+    public void showStatsUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: stats");
+        System.out.println("       stats <YYYY>");
+        System.out.println("Example: stats");
+        System.out.println("Example: stats 2026");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the forecast command.
+     */
+    public void showForecastUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: forecast");
+        System.out.println("Shows your projected end-of-month spending.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the clear command.
+     */
+    public void showClearUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: clear");
+        System.out.println("Clears all expenses after confirmation.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the exit command.
+     */
+    public void showExitUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: exit");
+        System.out.println("Saves data and exits the application.");
+        System.out.println(LINE);
+    }
+
+    /**
+     * Displays usage instructions for the help command.
+     */
+    public void showHelpUsage() {
+        System.out.println(LINE);
+        System.out.println("Usage: help");
+        System.out.println("       help <COMMAND>");
+        System.out.println("Example: help add");
+        System.out.println("Example: help budget");
+        System.out.println(LINE);
     }
 
     /**
